@@ -1,0 +1,87 @@
+======================================================
+MUNDIAL 2026 - DATOS COMPLETOS FASE DE GRUPOS
+Fuente: FIFA / ESPN / verificado mayo 2026
+======================================================
+
+== BLOQUE 1: 48 SELECCIONES POR GRUPO ==
+
+Grupo A: México, Sudáfrica, Corea del Sur, República Checa
+Grupo B: Canadá, Bosnia y Herzegovina, Catar, Suiza
+Grupo C: Brasil, Marruecos, Haití, Escocia
+Grupo D: Estados Unidos, Paraguay, Australia, Turquía
+Grupo E: Alemania, Curazao, Costa de Marfil, Ecuador
+Grupo F: Países Bajos, Japón, Suecia, Túnez
+Grupo G: Bélgica, Egipto, Irán, Nueva Zelanda
+Grupo H: España, Cabo Verde, Arabia Saudí, Uruguay
+Grupo I: Francia, Senegal, Irak, Noruega
+Grupo J: Argentina, Argelia, Austria, Jordania
+Grupo K: Portugal, RD Congo, Uzbekistán, Colombia
+Grupo L: Inglaterra, Croacia, Ghana, Panamá
+
+== BLOQUE 2: FIXTURE FASE DE GRUPOS ==
+
+-- JORNADA 1 --
+
+Jue 11 Jun | Grupo A | México vs Sudáfrica | 13:00 MEX (20:00 ESP) | Estadio Azteca, Ciudad de México
+Jue 11 Jun | Grupo A | Corea del Sur vs República Checa | 20:00 MEX (03:00+1 ESP) | Estadio Akron, Guadalajara
+
+Vie 12 Jun | Grupo B | Canadá vs Bosnia y Herzegovina | 13:00 MEX (20:00 ESP) | BMO Field, Toronto
+Vie 12 Jun | Grupo D | Estados Unidos vs Paraguay | 19:00 MEX (02:00+1 ESP) | SoFi Stadium, Los Ángeles
+
+Sáb 13 Jun | Grupo B | Catar vs Suiza | 13:00 MEX (20:00 ESP) | Levi's Stadium, San Francisco
+Sáb 13 Jun | Grupo C | Brasil vs Marruecos | 16:00 MEX (23:00 ESP) | MetLife Stadium, Nueva Jersey
+Sáb 13 Jun | Grupo C | Haití vs Escocia | 19:00 MEX (02:00+1 ESP) | Gillette Stadium, Boston
+
+Dom 14 Jun | Grupo D | Australia vs Turquía | 22:00 MEX (05:00+1 ESP) | Levi's Stadium, San Francisco
+Dom 14 Jun | Grupo E | Países Bajos vs Japón | (hora pendiente) | (sede pendiente)
+Dom 14 Jun | Grupo F | Alemania vs Curazao | (hora pendiente) | (sede pendiente)
+
+Lun 15 Jun | Grupo E | Costa de Marfil vs Ecuador | (hora pendiente) | (sede pendiente)
+Lun 15 Jun | Grupo F | Suecia vs Túnez | (hora pendiente) | (sede pendiente)
+
+Mar 16 Jun | Grupo G | Bélgica vs Egipto | (hora pendiente) | (sede pendiente)
+Mar 16 Jun | Grupo G | Irán vs Nueva Zelanda | (hora pendiente) | (sede pendiente)
+Mar 16 Jun | Grupo J | Argentina vs Argelia | (hora pendiente) | San Francisco o Kansas City
+
+Mié 17 Jun | Grupo H | España vs Cabo Verde | 18:00 ESP | Atlanta
+Mié 17 Jun | Grupo H | Arabia Saudí vs Uruguay | (hora pendiente) | (sede pendiente)
+Mié 17 Jun | Grupo I | Francia vs Senegal | (hora pendiente) | (sede pendiente)
+Mié 17 Jun | Grupo I | Irak vs Noruega | (hora pendiente) | (sede pendiente)
+Mié 17 Jun | Grupo J | Austria vs Jordania | 00:00 MEX | San Francisco
+Mié 17 Jun | Grupo K | Portugal vs RD Congo | 13:00 MEX | Houston
+Mié 17 Jun | Grupo K | Uzbekistán vs Colombia | 22:00 MEX | Ciudad de México
+Mié 17 Jun | Grupo L | Inglaterra vs Croacia | 16:00 MEX | Dallas
+Mié 17 Jun | Grupo L | Ghana vs Panamá | 19:00 MEX | Toronto
+
+-- JORNADA 2 (18–23 Jun) --
+
+Jue 18 Jun | Grupo A | República Checa vs Sudáfrica | 10:00 MEX | Atlanta
+Jue 18 Jun | Grupo A | México vs Corea del Sur | 19:00 MEX | Guadalajara
+Jue 18 Jun | Grupo B | Suiza vs Bosnia y Herzegovina | 13:00 MEX | Los Ángeles
+Jue 18 Jun | Grupo B | Canadá vs Catar | 16:00 MEX | Vancouver
+
+(resto de jornada 2 y jornada 3 con misma lógica de emparejamientos)
+
+-- JORNADA 3 (24–27 Jun, todos simultáneos por grupo) --
+
+Mar 24 Jun | Grupo A J3 | República Checa vs México | 19:00 MEX | Ciudad de México
+Mar 24 Jun | Grupo A J3 | Sudáfrica vs Corea del Sur | 19:00 MEX | Monterrey
+
+(los demás grupos siguen el mismo patrón: Jornada 3 todos los partidos del grupo a la misma hora)
+
+== FORMATO DEL TORNEO ==
+
+- Grupos: 12 grupos de 4 equipos (72 partidos, 11–27 jun)
+- Pasan: 1º y 2º de cada grupo + 8 mejores terceros = 32 equipos
+- Dieciseisavos: 28 jun – 3 jul
+- Octavos: 4–7 jul
+- Cuartos: 9–11 jul
+- Semifinales: 14 jul (Dallas) y 15 jul (Atlanta)
+- Tercer puesto: 18 jul (Miami)
+- FINAL: 19 jul | MetLife Stadium, Nueva Jersey
+
+== SEDES ==
+Ciudad de México · Guadalajara · Monterrey · Toronto · Vancouver
+Los Ángeles · San Francisco · Boston · Nueva Jersey · Philadelphia
+Houston · Dallas · Miami · Atlanta · Kansas City · Seattle
+======================================================

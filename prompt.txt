@@ -1,0 +1,44 @@
+Quiero construir una aplicación web de quinielas/porras para el Mundial de Fútbol
+2026 (11 junio – 19 julio, 48 selecciones, 104 partidos), para jugar con amigos y
+compañeros de oficina. Eres mi arquitecto y desarrollador senior. Antes de escribir
+código, propón la arquitectura y hazme las preguntas de aclaración que necesites.
+
+OBJETIVO Y ALCANCE
+- App de pronósticos donde un organizador crea una "quiniela", invita gente con un
+  código/enlace, y cada participante hace sus predicciones de partidos.
+- IMPORTANTE (legal, España): la app NO gestiona dinero en ningún momento. Solo lleva
+  puntos, aciertos y ranking. El bote, si lo hay, lo arreglan los participantes por
+  fuera. No incluyas pasarela de pago para botes ni custodia de dinero.
+
+TIPOS DE QUINIELA CONFIGURABLES (el organizador elige al crearla)
+1. Modo "1X2": acertar solo ganador/empate por partido.
+2. Modo "Marcador exacto": acertar el resultado exacto (con goles).
+3. Modo "Mixto": puntos por acertar el 1X2 + puntos extra por marcador exacto.
+4. Extras opcionales activables: pichichi/máximo goleador, campeón del torneo,
+   selección que pasa de cada grupo, mejores terceros, total de goles de un partido
+   (over/under), tarjeta de bonus de la fase eliminatoria.
+- Sistema de puntos totalmente configurable por el organizador (ej.: 3 pts acierto 1X2,
+  5 pts marcador exacto, 10 pts campeón, etc.), con valores por defecto sensatos.
+- Fecha/hora de cierre de predicciones por partido (no se puede editar tras el inicio).
+
+FUNCIONALIDADES CLAVE
+- Crear/unirse a quinielas mediante código o enlace compartible (WhatsApp, etc.).
+- Múltiples grupos independientes por usuario (oficina, amigos, familia).
+- Ranking/leaderboard en tiempo real y desglose de puntos por participante.
+- Vista de calendario con los 104 partidos, grupos y fase eliminatoria.
+- Panel del organizador para configurar reglas, sistema de puntos y gestionar miembros.
+- Resultados: empieza con introducción manual de resultados por el organizador, pero
+  deja la capa de datos abstraída para enchufar una API de resultados deportivos después.
+
+STACK Y CALIDAD
+- Frontend moderno y responsive (móvil primero), interfaz limpia con Tailwind.
+- Propón el stack (sugiero Next.js + base de datos sencilla tipo Supabase/SQLite).
+- Código estructurado, modular y comentado. Datos del Mundial (selecciones, grupos,
+  calendario) en archivos de configuración fáciles de actualizar.
+- Autenticación ligera (que baste con nombre + código de quinela, sin fricción).
+
+ENTREGABLES
+1. Primero: propuesta de arquitectura + esquema de base de datos + preguntas.
+2. Luego, por fases: estructura del proyecto, modelo de datos, lógica de puntuación,
+   pantallas, y al final datos de ejemplo para probar.
+Empieza por la fase 1. No escribas todo el código de golpe; vamos por partes y validamos.

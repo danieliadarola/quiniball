@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  background-color: #0a0915;
+}
+
+/* Halo violeta de QuiniBall detrás del contenido (mobile-first). */
+body {
+  background: radial-gradient(120% 90% at 50% 0%, #2a2470 0%, #16143a 40%, #0a0915 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Iconos SVG con trazo (estilo QuiniBall). */
+.qb-stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Banderas circulares reutilizables (sobre flag-icons). */
+.flag-circle {
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  border-radius: 9999px;
+  background-color: #1e1e29;
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.14);
+}
+.flag-circle .fi {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  background-size: cover !important;
+  border-radius: inherit;
+}
+.flag-circle .fi::before {
+  content: "";
+}
