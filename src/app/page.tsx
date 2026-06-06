@@ -16,7 +16,7 @@ export default function HomePage() {
   ];
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-12 px-5 py-10 sm:py-14">
+    <main className="mx-auto flex max-w-3xl flex-col gap-12 px-5 py-10 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:2.5rem] sm:py-14">
       <Logo size={30} />
 
       {/* Hero */}

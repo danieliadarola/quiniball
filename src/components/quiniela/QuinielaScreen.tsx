@@ -65,9 +65,10 @@ export function QuinielaScreen({
   const j = jornadas[jIdx];
 
   return (
-    <main className="mx-auto max-w-2xl pb-10">
-      {/* Cabecera */}
-      <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-ink/90 px-4 py-3.5 backdrop-blur">
+    <main className="mx-auto w-full max-w-2xl pb-10 safe-pb [--pad-b:2.5rem] lg:max-w-4xl">
+      {/* Cabecera + pestañas: un único bloque pegajoso (sin offsets mágicos). */}
+      <div className="safe-pt sticky top-0 z-20 border-b border-line bg-ink/90 backdrop-blur">
+      <header className="flex items-center gap-3 px-4 py-3.5 safe-px [--pad-x:1rem]">
         <Link
           href="/grupos"
           aria-label="Volver"
@@ -87,8 +88,8 @@ export function QuinielaScreen({
         </div>
       </header>
 
-      {/* Tabs */}
-      <div className="sticky top-[65px] z-10 flex gap-2 bg-ink px-4 pb-1 pt-3">
+      {/* Pestañas */}
+      <div className="mx-auto flex w-full max-w-md gap-2 px-4 pb-2.5 pt-1 safe-px [--pad-x:1rem]">
         {(["partidos", "ranking"] as const).map((t) => (
           <button
             key={t}
@@ -103,9 +104,10 @@ export function QuinielaScreen({
           </button>
         ))}
       </div>
+      </div>
 
       {tab === "partidos" ? (
-        <div className="flex flex-col gap-3.5 px-4 pt-3.5">
+        <div className="flex flex-col gap-3.5 px-4 pt-3.5 safe-px [--pad-x:1rem]">
           {/* Chips de jornada */}
           <div className="flex gap-2 overflow-x-auto pb-1">
             {jornadas.map((jx, i) => (
@@ -151,7 +153,7 @@ export function QuinielaScreen({
           )}
 
           {/* Partidos */}
-          <div className="flex flex-col gap-3">
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {j?.matches.map((m) => (
               <MatchCard
                 key={m.matchNumber}
@@ -163,7 +165,7 @@ export function QuinielaScreen({
           </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-6 px-4 pt-4">
+        <div className="flex flex-col gap-6 px-4 pt-4 safe-px [--pad-x:1rem] lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
           <RankingLive
             groupId={groupId}
             groupName={name}

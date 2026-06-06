@@ -27,6 +27,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#0b0b11",
+  // Permite extender el fondo bajo el notch y usar las safe-area-inset-*.
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

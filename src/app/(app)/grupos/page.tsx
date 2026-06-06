@@ -90,7 +90,7 @@ export default async function GruposPage() {
   const totalPts = [...mineByGroup.values()].reduce((s, r) => s + r.total_points, 0);
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-0 px-5 py-6">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-0 px-5 py-6 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:1.5rem] lg:max-w-5xl">
       {/* Saludo + puntos totales */}
       <div className="mb-1 flex items-end justify-between">
         <div>
@@ -124,7 +124,7 @@ export default async function GruposPage() {
           </p>
         </section>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {groups.map((g) => {
             const pal = paletteFor(g.id);
             const mine = mineByGroup.get(g.id);
@@ -183,16 +183,16 @@ export default async function GruposPage() {
         </ul>
       )}
 
-      <div className="mt-6 flex flex-col gap-2.5">
+      <div className="mt-6 flex flex-col gap-2.5 sm:mx-auto sm:w-full sm:max-w-md sm:flex-row">
         <Link
           href="/grupos/nueva"
-          className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 font-bold text-primary-ink shadow-lg shadow-primary/25 transition hover:bg-primary-strong"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3.5 font-bold text-primary-ink shadow-lg shadow-primary/25 transition hover:bg-primary-strong"
         >
           <span aria-hidden className="text-lg leading-none">＋</span> Crear quiniela
         </Link>
         <Link
           href="/unirse"
-          className="flex items-center justify-center gap-2 rounded-xl border border-line2 bg-surface2 px-5 py-3.5 font-semibold text-fg transition hover:border-primary/60"
+          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-line2 bg-surface2 px-5 py-3.5 font-semibold text-fg transition hover:border-primary/60"
         >
           Unirme con código
         </Link>

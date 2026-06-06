@@ -6,7 +6,7 @@ export default function AuthLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-5 py-12">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-5 py-12 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:3rem]">
       <Link href="/" className="mx-auto" aria-label="QuiniBall">
         <Logo size={34} />
       </Link>

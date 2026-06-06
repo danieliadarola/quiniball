@@ -40,7 +40,7 @@ export default async function AdminPage() {
   const finishedCount = matches.filter((m) => m.status === "finished").length;
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-8 px-5 py-10">
+    <main className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-5 py-10 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:2.5rem] lg:max-w-4xl">
       <header className="flex flex-col gap-2">
         <h1 className="font-display text-3xl uppercase tracking-wide text-slate-100">
           Panel de resultados
@@ -62,7 +62,7 @@ export default async function AdminPage() {
           <h2 className="font-display text-base uppercase tracking-wider text-accent">
             {section.label}
           </h2>
-          <ul className="flex flex-col gap-3">
+          <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {section.matches.map((sm) => {
               const m = byId.get(sm.matchNumber)!;
               const home = m.home_team_id ? getTeam(m.home_team_id) : undefined;

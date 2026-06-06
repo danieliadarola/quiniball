@@ -12,9 +12,28 @@ html {
 
 /* Halo violeta de QuiniBall detrás del contenido (mobile-first). */
 body {
+  /* 100dvh: la altura sigue a la barra del navegador en móvil (evita saltos). */
+  min-height: 100dvh;
   background: radial-gradient(120% 90% at 50% 0%, #2a2470 0%, #16143a 40%, #0a0915 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================================================
+   Safe areas (notch / barra inferior). Requiere viewport-fit=cover.
+   - .safe-pt: separa del notch superior (cabeceras pegajosas).
+   - .safe-pb: deja aire sobre la barra inferior / home indicator.
+   - .safe-px: evita que el contenido quede bajo el notch en horizontal.
+   ============================================================================= */
+.safe-pt {
+  padding-top: max(var(--pad-y, 0px), env(safe-area-inset-top));
+}
+.safe-pb {
+  padding-bottom: max(var(--pad-b, 0px), env(safe-area-inset-bottom));
+}
+.safe-px {
+  padding-left: max(var(--pad-x, 0px), env(safe-area-inset-left));
+  padding-right: max(var(--pad-x, 0px), env(safe-area-inset-right));
 }
 
 /* Iconos SVG con trazo (estilo QuiniBall). */

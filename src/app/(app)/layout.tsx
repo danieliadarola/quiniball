@@ -18,9 +18,9 @@ export default async function AppLayout({
   const isAdmin = await isCurrentUserAdmin();
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-line bg-ink/85 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-3">
+    <div className="min-h-dvh">
+      <header className="safe-pt sticky top-0 z-10 border-b border-line bg-ink/85 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center justify-between py-3 safe-px [--pad-x:1.25rem]">
           <Link href="/grupos" aria-label="QuiniBall">
             <Logo size={26} />
           </Link>
