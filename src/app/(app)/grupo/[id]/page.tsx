@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getSession, getSupabaseForCurrentUser } from "@/lib/auth/session";
+import { isCurrentUserAdmin } from "@/lib/admin/auth";
 import { fetchStandings } from "@/lib/standings/fetch";
 import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff, formatDay } from "@/lib/matches/format";
@@ -144,6 +145,10 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   const me = standings.find((r) => r.profileId === session.sub);
   const origin = await getOrigin();
 
+  // Puede gestionar (expulsar/transferir/eliminar) el dueño o el admin global.
+  const canManage =
+    group.owner_id === session.sub ? true : await isCurrentUserAdmin();
+
   return (
     <QuinielaScreen
       groupId={group.id}
@@ -156,6 +161,8 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       predictions={predictions}
       standings={standings}
       currentProfileId={session.sub}
+      ownerId={group.owner_id}
+      canManage={canManage}
     />
   );
 }

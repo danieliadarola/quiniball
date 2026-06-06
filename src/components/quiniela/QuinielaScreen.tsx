@@ -38,6 +38,8 @@ export function QuinielaScreen({
   predictions,
   standings,
   currentProfileId,
+  ownerId,
+  canManage,
 }: {
   groupId: string;
   name: string;
@@ -49,6 +51,8 @@ export function QuinielaScreen({
   predictions: Record<number, PredVM>;
   standings: StandingRow[];
   currentProfileId: string;
+  ownerId: string;
+  canManage: boolean;
 }) {
   const [tab, setTab] = useState<"partidos" | "ranking">("partidos");
   const initialJ = useMemo(() => {
@@ -160,7 +164,14 @@ export function QuinielaScreen({
         </div>
       ) : (
         <div className="flex flex-col gap-6 px-4 pt-4">
-          <RankingLive groupId={groupId} currentProfileId={currentProfileId} initialRows={standings} />
+          <RankingLive
+            groupId={groupId}
+            groupName={name}
+            ownerId={ownerId}
+            canManage={canManage}
+            currentProfileId={currentProfileId}
+            initialRows={standings}
+          />
 
           {/* Invitar */}
           <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5">
