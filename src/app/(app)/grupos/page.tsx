@@ -90,7 +90,7 @@ export default async function GruposPage() {
   const totalPts = [...mineByGroup.values()].reduce((s, r) => s + r.total_points, 0);
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-0 px-5 py-6 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:1.5rem] lg:max-w-5xl">
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-0 px-5 py-6 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:1.5rem]">
       {/* Saludo + puntos totales */}
       <div className="mb-1 flex items-end justify-between">
         <div>
@@ -124,7 +124,11 @@ export default async function GruposPage() {
           </p>
         </section>
       ) : (
-        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul
+          className={`grid grid-cols-1 gap-3 ${
+            groups.length > 1 ? "sm:grid-cols-2" : ""
+          }`}
+        >
           {groups.map((g) => {
             const pal = paletteFor(g.id);
             const mine = mineByGroup.get(g.id);
