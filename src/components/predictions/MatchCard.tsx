@@ -229,6 +229,13 @@ const OPTS: [Outcome, string][] = [
   ["2", "Visit."],
 ];
 
+// Colores del cubo del logo: 1 verde · X rojo · 2 azul.
+const CUBE: Record<Outcome, { bg: string; text: string; ring: string }> = {
+  "1": { bg: "bg-pick1", text: "text-pick1", ring: "shadow-pick1/30" },
+  X: { bg: "bg-pickx", text: "text-pickx", ring: "shadow-pickx/30" },
+  "2": { bg: "bg-pick2", text: "text-pick2", ring: "shadow-pick2/30" },
+};
+
 function PickRow({
   options,
   pick,
@@ -254,7 +261,7 @@ function PickRow({
           else if (pick === k) cls += " border-bad text-bad";
           else cls += " border-line text-fg opacity-40";
         } else if (pick === k) {
-          cls += " border-primary bg-primary text-white shadow-lg shadow-primary/25";
+          cls += ` border-transparent ${CUBE[k].bg} text-white shadow-lg ${CUBE[k].ring}`;
         } else {
           cls += " border-line text-fg";
         }
@@ -266,7 +273,13 @@ function PickRow({
             onClick={() => onPick(k)}
             className={`${cls} ${disabled ? "cursor-default" : "active:scale-[0.97]"}`}
           >
-            <span className="font-display text-[22px] font-extrabold leading-none">{k}</span>
+            <span
+              className={`font-display text-[22px] font-extrabold leading-none ${
+                !finished && pick !== k ? CUBE[k].text : ""
+              }`}
+            >
+              {k}
+            </span>
             <span
               className={`text-[10px] font-bold uppercase tracking-[0.4px] ${
                 pick === k && !finished ? "text-white/85" : "text-muted"

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { TOURNAMENT } from "@/config/defaults";
 import { VENUES } from "@/data/tournament/venues";
-import { Logo } from "@/components/ui/Logo";
+import { LogoBadge } from "@/components/ui/Logo";
 
 /**
  * Landing pública QuiniBall: hero oscuro con halo, titular de impacto y datos
@@ -17,7 +17,7 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-12 px-5 py-10 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:2.5rem] sm:py-14">
-      <Logo size={30} />
+      <LogoBadge size={132} priority className="mx-auto" />
 
       {/* Hero */}
       <header className="relative flex flex-col gap-5 overflow-hidden rounded-3xl border border-line bg-surface px-6 py-10 sm:px-10 sm:py-14">

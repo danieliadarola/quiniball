@@ -7,16 +7,38 @@
 }
 
 html {
-  background-color: #0a0915;
+  background-color: #060912;
 }
 
-/* Halo violeta de QuiniBall detrás del contenido (mobile-first). */
 body {
   /* 100dvh: la altura sigue a la barra del navegador en móvil (evita saltos). */
   min-height: 100dvh;
-  background: radial-gradient(120% 90% at 50% 0%, #2a2470 0%, #16143a 40%, #0a0915 100%);
-  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+}
+
+/* =============================================================================
+   Fondo Mundial: foto del balón difuminada + capa azul marino para legibilidad.
+   Se fija al viewport (no scrollea) y queda detrás de todo el contenido.
+   ============================================================================= */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: url("/bg-mundial.jpg") center center / cover no-repeat;
+  /* Difuminado + leve saturación; el scale evita que el blur muestre bordes. */
+  filter: blur(7px) saturate(1.05) brightness(0.9);
+  transform: scale(1.08);
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  /* Velo azul marino: más oscuro arriba (cabeceras) y abajo (botones). */
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(37, 99, 235, 0.18) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(6, 9, 18, 0.9) 0%, rgba(8, 12, 28, 0.82) 45%, rgba(6, 9, 18, 0.94) 100%);
 }
 
 /* =============================================================================

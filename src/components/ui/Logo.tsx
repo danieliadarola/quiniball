@@ -1,7 +1,13 @@
 /**
- * Emblema + wordmark de QuiniBall. La "diana" (acierta) combina anillo primario,
- * anillo de acento y centro relleno. Sin dependencias; solo SVG.
+ * Marca QuiniBall (temática Mundial 2026).
+ *  - <Logo>: icono circular (la insignia del balón) + wordmark "QuiniBall".
+ *    Pensado para cabeceras; a tamaño pequeño el lema de la insignia no se lee,
+ *    por eso el nombre va como texto al lado.
+ *  - <LogoBadge>: la insignia completa en grande (ya incluye nombre y lema),
+ *    para portada y login.
  */
+import Image from "next/image";
+
 export function Logo({
   size = 30,
   mono = false,
@@ -13,19 +19,44 @@ export function Logo({
 }) {
   return (
     <div className={`flex items-center gap-2.5 ${className}`}>
-      <span className="inline-flex shrink-0" style={{ width: size, height: size }}>
-        <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden>
-          <circle cx="20" cy="20" r="19" fill="none" stroke="var(--logo-ring,#1F8A5B)" strokeWidth="3" />
-          <circle cx="20" cy="20" r="12" fill="none" stroke="var(--logo-mid,#facc15)" strokeWidth="3" />
-          <circle cx="20" cy="20" r="5" fill="var(--logo-ring,#1F8A5B)" />
-        </svg>
-      </span>
       <span
-        className="font-display text-[22px] font-bold italic uppercase tracking-[0.4px]"
-        style={{ fontStyle: "italic" }}
+        className="inline-flex shrink-0 overflow-hidden rounded-full ring-1 ring-white/15"
+        style={{ width: size, height: size }}
       >
-        Quini<b className={`font-extrabold ${mono ? "" : "text-primary"}`}>Ball</b>
+        <Image
+          src="/quiniball-badge.jpg"
+          alt=""
+          width={size}
+          height={size}
+          className="h-full w-full object-cover"
+        />
+      </span>
+      <span className="font-display text-[22px] font-bold italic uppercase tracking-[0.4px]">
+        Quini
+        <b className={`font-extrabold ${mono ? "" : "text-[#1f9d4d]"}`}>Ball</b>
       </span>
     </div>
+  );
+}
+
+/** Insignia completa (con nombre y lema incrustados) para portada/login. */
+export function LogoBadge({
+  size = 150,
+  className = "",
+  priority = false,
+}: {
+  size?: number;
+  className?: string;
+  priority?: boolean;
+}) {
+  return (
+    <Image
+      src="/quiniball-badge.jpg"
+      alt="QuiniBall — juega con el Mundial 2026"
+      width={size}
+      height={size}
+      priority={priority}
+      className={`rounded-full object-cover shadow-2xl shadow-black/50 ring-1 ring-white/10 ${className}`}
+    />
   );
 }

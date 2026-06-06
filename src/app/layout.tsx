@@ -26,7 +26,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0b0b11",
+  themeColor: "#060912",
   // Permite extender el fondo bajo el notch y usar las safe-area-inset-*.
   viewportFit: "cover",
 };
