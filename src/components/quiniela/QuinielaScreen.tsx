@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MatchCard, type MatchVM, type PredVM } from "@/components/predictions/MatchCard";
 import { RankingLive } from "@/components/ranking/RankingLive";
 import { ShareCode } from "@/components/groups/ShareCode";
+import { renameGroup } from "@/app/(app)/grupos/actions";
 import type { StandingRow } from "@/lib/standings/fetch";
 
 export interface JornadaVM {
@@ -64,6 +66,12 @@ export function QuinielaScreen({
   const [jIdx, setJIdx] = useState(initialJ);
   const j = jornadas[jIdx];
 
+  // Edición del nombre de la quiniela (solo el dueño).
+  const router = useRouter();
+  const isOwner = currentProfileId === ownerId;
+  const [groupName, setGroupName] = useState(name);
+  const [editing, setEditing] = useState(false);
+
   return (
     <main className="mx-auto w-full max-w-2xl pb-10 safe-pb [--pad-b:2.5rem] lg:max-w-4xl">
       {/* Cabecera + pestañas: un único bloque pegajoso (sin offsets mágicos). */}
@@ -77,7 +85,22 @@ export function QuinielaScreen({
           <svg viewBox="0 0 24 24" width="22" height="22" className="qb-stroke"><path d="M15 6l-6 6 6 6" /></svg>
         </Link>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-extrabold">{name}</h1>
+          <div className="flex items-center gap-1.5">
+            <h1 className="truncate text-lg font-extrabold">{groupName}</h1>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                aria-label="Editar nombre de la quiniela"
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-line text-muted transition hover:border-primary/60 hover:text-fg"
+              >
+                <svg viewBox="0 0 24 24" width="15" height="15" className="qb-stroke" aria-hidden>
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+                </svg>
+              </button>
+            )}
+          </div>
           <span className="text-[11.5px] font-bold tracking-[0.4px] text-muted">Código {joinCode}</span>
         </div>
         <div className="shrink-0 text-right">
@@ -168,7 +191,7 @@ export function QuinielaScreen({
         <div className="flex flex-col gap-6 px-4 pt-4 safe-px [--pad-x:1rem] lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
           <RankingLive
             groupId={groupId}
-            groupName={name}
+            groupName={groupName}
             ownerId={ownerId}
             canManage={canManage}
             currentProfileId={currentProfileId}
@@ -182,6 +205,90 @@ export function QuinielaScreen({
           </section>
         </div>
       )}
+
+      {editing && (
+        <RenameDialog
+          groupId={groupId}
+          current={groupName}
+          onClose={() => setEditing(false)}
+          onSaved={(newName) => {
+            setGroupName(newName);
+            setEditing(false);
+            router.refresh();
+          }}
+        />
+      )}
     </main>
+  );
+}
+
+/** Modal para que el dueño renombre la quiniela. */
+function RenameDialog({
+  groupId,
+  current,
+  onClose,
+  onSaved,
+}: {
+  groupId: string;
+  current: string;
+  onClose: () => void;
+  onSaved: (name: string) => void;
+}) {
+  const [value, setValue] = useState(current);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function submit() {
+    setError(null);
+    startTransition(async () => {
+      const r = await renameGroup(groupId, value);
+      if (r.error) setError(r.error);
+      else onSaved(value.trim());
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-5 safe-px [--pad-x:1.25rem]"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-display text-lg font-extrabold uppercase tracking-wide">
+          Nombre de la quiniela
+        </h3>
+        <input
+          autoFocus
+          value={value}
+          maxLength={60}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !pending) submit();
+          }}
+          className="mt-4 w-full rounded-xl border border-line2 bg-surface2 px-4 py-3 text-fg outline-none focus:border-primary/60"
+          placeholder="Ej. La porra de la oficina"
+        />
+        {error && <p className="mt-2 text-sm font-semibold text-bad">{error}</p>}
+        <div className="mt-5 flex gap-2.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-line2 bg-surface2 px-4 py-2.5 font-semibold text-fg transition hover:border-primary/60"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={submit}
+            className="flex-1 rounded-xl bg-primary px-4 py-2.5 font-bold text-primary-ink transition hover:bg-primary-strong disabled:opacity-60"
+          >
+            {pending ? "Guardando…" : "Guardar"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

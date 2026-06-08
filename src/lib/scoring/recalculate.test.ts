@@ -43,4 +43,17 @@ describe("recalcMatchPoints", () => {
   it("lista vacía -> sin actualizaciones", () => {
     expect(recalcMatchPoints(false, result, [])).toEqual([]);
   });
+
+  it("destacado POR predicción: el mismo partido da bonus solo a quien lo tiene como estrella", () => {
+    // Mismo marcador exacto (2-1) en dos quinielas: una lo tiene de estrella y
+    // otra no. El `featured` por predicción prevalece sobre el global (false).
+    const preds: ScorablePrediction[] = [
+      { id: "estrella", predHomeGoals: 2, predAwayGoals: 1, predOutcome: null, featured: true },
+      { id: "normal", predHomeGoals: 2, predAwayGoals: 1, predOutcome: null, featured: false },
+    ];
+    expect(recalcMatchPoints(false, result, preds)).toEqual([
+      { id: "estrella", points: 8 }, // 3 (1X2) + 5 (exacto)
+      { id: "normal", points: 3 }, // solo 1X2
+    ]);
+  });
 });

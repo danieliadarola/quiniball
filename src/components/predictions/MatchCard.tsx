@@ -255,15 +255,17 @@ function PickRow({
     <div className="flex gap-2">
       {options.map(([k, label]) => {
         let cls =
-          "flex flex-1 flex-col items-center gap-px rounded-xl border bg-surface2 px-1 py-2.5 transition";
+          "flex flex-1 flex-col items-center gap-px rounded-xl border bg-surface2 px-1 py-2.5 transition duration-150";
         if (finished) {
           if (k === resultOutcome) cls += " border-good text-good";
           else if (pick === k) cls += " border-bad text-bad";
           else cls += " border-line text-fg opacity-40";
         } else if (pick === k) {
-          cls += ` border-transparent ${CUBE[k].bg} text-white shadow-lg ${CUBE[k].ring}`;
+          // Elección activa: muy marcada (color del cubo + halo blanco + relieve).
+          cls += ` z-[1] scale-[1.06] border-transparent ${CUBE[k].bg} text-white shadow-xl ring-2 ring-white/75 ${CUBE[k].ring}`;
         } else {
-          cls += " border-line text-fg";
+          // No elegidos: atenuados para que la elección destaque.
+          cls += " border-line text-fg opacity-60";
         }
         return (
           <button

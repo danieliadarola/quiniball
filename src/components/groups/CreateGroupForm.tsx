@@ -32,8 +32,8 @@ export function CreateGroupForm() {
             <span className="font-semibold text-accent">{POINTS.outcome} pts</span> por acierto.
           </li>
           <li>
-            · Cada jornada hay un <span className="text-slate-200">★ partido de la jornada</span>{" "}
-            (aleatorio, el mismo para todos) que además puntúa el marcador exacto:{" "}
+            · Cada jornada hay un <span className="text-slate-200">★ partido estrella</span>{" "}
+            (aleatorio y propio de cada quiniela) que además puntúa el marcador exacto:{" "}
             <span className="font-semibold text-accent">+{POINTS.exactBonus} pts</span>.
           </li>
         </ul>

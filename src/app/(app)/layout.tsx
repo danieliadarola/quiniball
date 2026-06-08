@@ -33,7 +33,16 @@ export default async function AppLayout({
                 Admin
               </Link>
             )}
-            <span className="hidden text-muted sm:inline">{session.display_name}</span>
+            <Link
+              href="/perfil"
+              className="flex items-center gap-1.5 rounded-lg border border-line2 bg-surface2 px-3 py-1.5 font-semibold text-fg transition hover:border-primary/60"
+            >
+              <svg viewBox="0 0 24 24" width="16" height="16" className="qb-stroke" aria-hidden>
+                <circle cx="12" cy="8" r="3.2" />
+                <path d="M5.5 19a6.5 6.5 0 0 1 13 0" />
+              </svg>
+              <span className="hidden max-w-[10rem] truncate sm:inline">{session.display_name}</span>
+            </Link>
             <form action={logout}>
               <button
                 type="submit"

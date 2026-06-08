@@ -20,6 +20,12 @@ export interface ScorablePrediction {
   predHomeGoals: number | null;
   predAwayGoals: number | null;
   predOutcome: Outcome | null;
+  /**
+   * Destacado POR PREDICCIÓN: si se indica, prevalece sobre el `isFeatured`
+   * global. Necesario ahora que el partido estrella es propio de cada quiniela
+   * (un mismo partido puede ser estrella en una quiniela y normal en otra).
+   */
+  featured?: boolean;
 }
 
 /** Resultado del recálculo: qué puntos escribir en cada predicción. */
@@ -31,7 +37,8 @@ export interface PointsUpdate {
 /**
  * Recalcula los puntos de todas las predicciones de un partido ya finalizado.
  *
- * @param isFeatured  `true` si el partido es el destacado de su jornada.
+ * @param isFeatured  Destacado por DEFECTO del partido. Cada predicción puede
+ *                    anularlo con su propio `featured` (destacado por quiniela).
  * @param result      Resultado oficial del partido.
  * @param predictions Predicciones de ese partido (de cualquier quiniela).
  */
@@ -43,7 +50,7 @@ export function recalcMatchPoints(
   return predictions.map((p) => ({
     id: p.id,
     points: scoreMatch(
-      isFeatured,
+      p.featured ?? isFeatured,
       {
         predHomeGoals: p.predHomeGoals,
         predAwayGoals: p.predAwayGoals,

@@ -20,7 +20,6 @@ interface MatchdayRow {
   id: number;
   code: string;
   name: string;
-  featured_match_number: number | null;
 }
 interface MatchRow {
   match_number: number;
@@ -68,23 +67,30 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
     .maybeSingle()) as { data: GroupRow | null };
   if (!group) notFound();
 
-  const [{ data: mdRows }, { data: matchRows }, { data: predRows }, standings] = await Promise.all([
-    sb.from("matchdays").select("id, code, name, featured_match_number").order("id") as unknown as Promise<{ data: MatchdayRow[] | null }>,
-    sb
-      .from("matches")
-      .select(
-        "match_number, matchday_id, phase, group_letter, kickoff_at, home_team_id, away_team_id, home_placeholder, away_placeholder, home_goals, away_goals",
-      )
-      .order("match_number") as unknown as Promise<{ data: MatchRow[] | null }>,
-    sb
-      .from("predictions")
-      .select("match_number, pred_home_goals, pred_away_goals, pred_outcome")
-      .eq("group_id", id) as unknown as Promise<{ data: PredRow[] | null }>,
-    fetchStandings(sb, id),
-  ]);
+  const [{ data: mdRows }, { data: matchRows }, { data: predRows }, { data: featRows }, standings] =
+    await Promise.all([
+      sb.from("matchdays").select("id, code, name").order("id") as unknown as Promise<{ data: MatchdayRow[] | null }>,
+      sb
+        .from("matches")
+        .select(
+          "match_number, matchday_id, phase, group_letter, kickoff_at, home_team_id, away_team_id, home_placeholder, away_placeholder, home_goals, away_goals",
+        )
+        .order("match_number") as unknown as Promise<{ data: MatchRow[] | null }>,
+      sb
+        .from("predictions")
+        .select("match_number, pred_home_goals, pred_away_goals, pred_outcome")
+        .eq("group_id", id) as unknown as Promise<{ data: PredRow[] | null }>,
+      // Partidos estrella propios de ESTA quiniela (destacado por grupo).
+      sb
+        .from("group_featured_matches")
+        .select("match_number")
+        .eq("group_id", id) as unknown as Promise<{ data: { match_number: number }[] | null }>,
+      fetchStandings(sb, id),
+    ]);
 
   const matchdays = mdRows ?? [];
   const matches = matchRows ?? [];
+  const featuredSet = new Set((featRows ?? []).map((f) => f.match_number));
   const now = Date.now();
 
   const predByMatch = new Map<number, PredVM>(
@@ -98,7 +104,6 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
 
   // Construir las jornadas con sus partidos.
   const jornadas: JornadaVM[] = matchdays.map((md) => {
-    const featured = md.featured_match_number;
     const ms = matches
       .filter((m) => m.matchday_id === md.id)
       .sort((a, b) => a.match_number - b.match_number);
@@ -118,7 +123,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
         homeLabel: home?.name ?? m.home_placeholder ?? "Por determinar",
         awayLabel: away?.name ?? m.away_placeholder ?? "Por determinar",
         locked: isPredictionLocked(Date.parse(m.kickoff_at), now),
-        featured: featured === m.match_number,
+        featured: featuredSet.has(m.match_number),
         result: hasResult
           ? { home: m.home_goals!, away: m.away_goals!, outcome: outcomeFrom(m.home_goals!, m.away_goals!) }
           : null,

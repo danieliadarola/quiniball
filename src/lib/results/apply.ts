@@ -5,10 +5,11 @@ import "server-only";
  *
  * Recibe un resultado oficial (de un admin a mano HOY, o de la API de resultados
  * MAÑANA) y:
- *   1) averigua si el partido es el "destacado" de su jornada (matchdays),
- *   2) lee todas las predicciones de ese partido (de TODAS las quinielas),
- *   3) calcula los puntos con el motor puro (baremo único: 1X2 = 3, +5 exacto
- *      solo si es destacado),
+ *   1) averigua en QUÉ quinielas este partido es el "destacado" (es por grupo),
+ *   2) lee todas las predicciones de ese partido (de TODAS las quinielas), con
+ *      su group_id,
+ *   3) calcula los puntos con el motor puro (1X2 = 3; +5 exacto solo si el
+ *      partido es el destacado DE ESA quiniela),
  *   4) aplica marcador + puntos en una sola transacción (RPC atómica).
  *
  * El ranking se actualiza solo en los clientes vía Realtime (suscripción a
@@ -26,6 +27,7 @@ export interface ApplyResultOutcome {
 
 interface PredictionRow {
   id: string;
+  group_id: string;
   pred_home_goals: number | null;
   pred_away_goals: number | null;
   pred_outcome: Outcome | null;
@@ -42,34 +44,38 @@ export async function applyMatchResult(
 
   const admin = createSupabaseAdmin();
 
-  // 1) ¿Es el partido destacado de alguna jornada?
-  const { data: featuredRow, error: fErr } = (await admin
-    .from("matchdays")
-    .select("id")
-    .eq("featured_match_number", matchNumber)
-    .maybeSingle()) as { data: { id: number } | null; error: { message: string } | null };
+  // 1) ¿En qué quinielas es ESTE el partido destacado? (es por grupo)
+  const { data: featuredRows, error: fErr } = (await admin
+    .from("group_featured_matches")
+    .select("group_id")
+    .eq("match_number", matchNumber)) as {
+    data: { group_id: string }[] | null;
+    error: { message: string } | null;
+  };
   if (fErr) return { ok: false, error: fErr.message, predictionsUpdated: 0 };
-  const isFeatured = featuredRow !== null;
+  const featuredGroups = new Set((featuredRows ?? []).map((r) => r.group_id));
 
-  // 2) Predicciones del partido (de todas las quinielas).
+  // 2) Predicciones del partido (de todas las quinielas), con su grupo.
   const { data: preds, error: pErr } = (await admin
     .from("predictions")
-    .select("id, pred_home_goals, pred_away_goals, pred_outcome")
+    .select("id, group_id, pred_home_goals, pred_away_goals, pred_outcome")
     .eq("match_number", matchNumber)) as { data: PredictionRow[] | null; error: { message: string } | null };
   if (pErr) return { ok: false, error: pErr.message, predictionsUpdated: 0 };
 
   const predictions = preds ?? [];
 
-  // 3) Puntos con el motor puro (ya testeado).
+  // 3) Puntos con el motor puro (ya testeado). El bonus por marcador exacto solo
+  //    aplica a las predicciones cuya quiniela tiene este partido como estrella.
   const result: MatchResult = { homeGoals, awayGoals };
   const scorable: ScorablePrediction[] = predictions.map((p) => ({
     id: p.id,
     predHomeGoals: p.pred_home_goals,
     predAwayGoals: p.pred_away_goals,
     predOutcome: p.pred_outcome,
+    featured: featuredGroups.has(p.group_id),
   }));
 
-  const updates = recalcMatchPoints(isFeatured, result, scorable);
+  const updates = recalcMatchPoints(false, result, scorable);
 
   // 4) Aplicación atómica (marcador + puntos) en una transacción.
   const { error: rErr } = await admin.rpc("apply_match_result", {

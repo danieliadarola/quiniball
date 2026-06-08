@@ -73,12 +73,14 @@ export async function savePrediction(
     return { error: "El plazo se cierra 5 minutos antes del inicio y ya ha pasado." };
   }
 
-  // ¿Es el partido destacado de su jornada? (admite además marcador exacto)
+  // ¿Es el partido estrella DE ESTA quiniela? (admite además marcador exacto).
+  // El destacado es por grupo, así que se consulta contra group_featured_matches.
   const { data: featured } = (await sb
-    .from("matchdays")
-    .select("id")
-    .eq("featured_match_number", matchNumber)
-    .maybeSingle()) as { data: { id: number } | null };
+    .from("group_featured_matches")
+    .select("match_number")
+    .eq("group_id", groupId)
+    .eq("match_number", matchNumber)
+    .maybeSingle()) as { data: { match_number: number } | null };
   const isFeatured = featured !== null;
 
   // Todo partido lleva un pick 1·X·2 obligatorio.

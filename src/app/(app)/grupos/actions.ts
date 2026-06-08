@@ -6,6 +6,7 @@
  * RPC atómicas `create_group` / `join_group`.
  */
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { getSupabaseForCurrentUser } from "@/lib/auth/session";
 import { generateJoinCode, normalizeJoinCode } from "@/lib/groups/code";
 
@@ -50,6 +51,37 @@ export async function createGroup(
   }
 
   redirect(`/grupo/${groupId}`);
+}
+
+/**
+ * Renombra una quiniela. Solo el dueño puede (lo garantiza la RLS
+ * `groups_update_owner`); además comprobamos que la actualización tocó la fila
+ * para no dar un falso "ok" a quien no es dueño.
+ */
+export async function renameGroup(
+  groupId: string,
+  rawName: string,
+): Promise<GroupActionState> {
+  const name = rawName.trim();
+  if (name.length < 3 || name.length > 60) {
+    return { error: "El nombre debe tener entre 3 y 60 caracteres." };
+  }
+
+  const sb = await getSupabaseForCurrentUser();
+  if (!sb) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+
+  const { data, error } = await sb
+    .from("groups")
+    .update({ name })
+    .eq("id", groupId)
+    .select("id");
+
+  if (error || !data || data.length === 0) {
+    return { error: "No se pudo cambiar el nombre (¿eres el creador?)." };
+  }
+
+  revalidatePath(`/grupo/${groupId}`);
+  return {};
 }
 
 export async function joinGroup(
