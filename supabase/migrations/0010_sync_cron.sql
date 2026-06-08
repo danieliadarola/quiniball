@@ -25,7 +25,7 @@ select cron.schedule(
   '*/5 * * 6,7 *',
   $$
   select net.http_post(
-    url     := 'https://quiniball-rudami-project-s-projects.vercel.app/api/sync',
+    url     := 'https://quiniball.vercel.app/api/sync',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
       'x-cron-secret', 'I-SU02HltlhPtYMBSIaWqNYUUBinQuNr'
