@@ -84,6 +84,54 @@ export async function renameGroup(
   return {};
 }
 
+/**
+ * Salir de una quiniela por tu cuenta (auto-baja). El dueño NO puede: debe
+ * eliminarla o transferir antes el liderato (lo valida la RPC `leave_group`).
+ */
+export async function leaveGroup(groupId: string): Promise<GroupActionState> {
+  if (!groupId) return { error: "Datos no válidos." };
+
+  const sb = await getSupabaseForCurrentUser();
+  if (!sb) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+
+  const { error } = await sb.rpc("leave_group", { p_group_id: groupId });
+  if (error) {
+    if (error.message.includes("OWNER_CANNOT_LEAVE")) {
+      return { error: "Eres el organizador: elimínala o transfiere el liderato antes de salir." };
+    }
+    if (error.message.includes("NOT_A_MEMBER")) {
+      return { error: "Ya no estás en esta quiniela." };
+    }
+    return { error: "No se pudo salir de la quiniela. Inténtalo de nuevo." };
+  }
+
+  revalidatePath("/grupos");
+  return {};
+}
+
+/**
+ * Elimina una quiniela desde el dashboard (solo dueño/admin; lo valida la RPC
+ * `delete_group`). La confirmación se hace en la UI (diálogo), por eso aquí no
+ * se pide reescribir el nombre.
+ */
+export async function deleteOwnedGroup(groupId: string): Promise<GroupActionState> {
+  if (!groupId) return { error: "Datos no válidos." };
+
+  const sb = await getSupabaseForCurrentUser();
+  if (!sb) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+
+  const { error } = await sb.rpc("delete_group", { p_group_id: groupId });
+  if (error) {
+    if (error.message.includes("NOT_AUTHORIZED")) {
+      return { error: "Solo el organizador puede eliminar la quiniela." };
+    }
+    return { error: "No se pudo eliminar la quiniela. Inténtalo de nuevo." };
+  }
+
+  revalidatePath("/grupos");
+  return {};
+}
+
 export async function joinGroup(
   _prev: GroupActionState,
   formData: FormData,

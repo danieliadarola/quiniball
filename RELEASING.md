@@ -46,3 +46,5 @@ plugins de Capacitor.
 - **v1.1** — Partido estrella por quiniela, perfil editable (nombre de usuario),
   renombrar quiniela, botón 1X2 más claro. *(Cambio de web/lógica: se entrega
   por Vercel; no necesita AAB nuevo.)*
+- **v1.2** — Salir de una quiniela por tu cuenta y eliminarla deslizando en el
+  dashboard (dueño). RPC `leave_group` (migración 0012). *(Web/lógica; por Vercel.)*

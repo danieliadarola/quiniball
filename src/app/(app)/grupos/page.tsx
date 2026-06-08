@@ -3,6 +3,7 @@ import { getSession, getSupabaseForCurrentUser } from "@/lib/auth/session";
 import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff } from "@/lib/matches/format";
 import { isPredictionLocked } from "@/lib/matches/schedule";
+import { GroupCard } from "@/components/groups/GroupCard";
 
 export const metadata = { title: "Mis quinielas · QuiniBall" };
 
@@ -23,6 +24,7 @@ function paletteFor(id: string) {
 interface GroupRow {
   id: string;
   name: string;
+  owner_id: string;
 }
 interface StandingRow {
   group_id: string;
@@ -45,7 +47,7 @@ export default async function GruposPage() {
 
   const { data: groupsData } = (await sb
     .from("groups")
-    .select("id, name")
+    .select("id, name, owner_id")
     .order("created_at", { ascending: false })) as { data: GroupRow[] | null };
   const groups = groupsData ?? [];
   const groupIds = groups.map((g) => g.id);
@@ -136,52 +138,20 @@ export default async function GruposPage() {
             const myPredSet = predsByGroup.get(g.id) ?? new Set<number>();
             const pending = openMatchNumbers.filter((n) => !myPredSet.has(n)).length;
             return (
-              <li key={g.id}>
-                <Link
-                  href={`/grupo/${g.id}`}
-                  className="flex items-stretch overflow-hidden rounded-2xl border border-line bg-surface transition active:scale-[0.99]"
-                >
-                  {/* Barra de color con bloques */}
-                  <span className="relative w-2.5 shrink-0" style={{ background: pal.c }}>
-                    <span className="absolute inset-x-0 top-0 h-[40%]" style={{ background: pal.c }} />
-                    <span className="absolute inset-x-0 top-[40%] h-[30%]" style={{ background: pal.a }} />
-                    <span className="absolute inset-x-0 bottom-0 top-[70%] bg-primary" />
-                  </span>
-
-                  <div className="min-w-0 flex-1 py-3.5 pl-3.5 pr-1.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="text-[17px] font-extrabold tracking-[0.2px] text-fg">{g.name}</h3>
-                      {pending > 0 && (
-                        <span className="shrink-0 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-extrabold text-primary">
-                          {pending} pend.
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="mt-1.5 flex items-center gap-2 text-[12.5px] font-semibold text-muted">
-                      <span className="font-display text-base font-extrabold" style={{ color: pal.c }}>
-                        #{mine?.rank ?? "—"}
-                        <small className="text-[11px] font-bold text-muted">/{members}</small>
-                      </span>
-                      <span className="h-[3px] w-[3px] rounded-full bg-muted2" />
-                      <span>{members} jugadores</span>
-                      <span className="h-[3px] w-[3px] rounded-full bg-muted2" />
-                      <span className="font-extrabold text-accent">{mine?.total_points ?? 0} pts</span>
-                    </div>
-
-                    {nextLabel && (
-                      <div className="mt-2.5 flex items-center gap-2 rounded-lg bg-surface2 px-2.5 py-1.5 text-xs font-semibold text-muted">
-                        <span className="h-[7px] w-[7px] shrink-0 animate-pulse rounded-full bg-primary shadow-[0_0_0_3px_rgba(31,138,91,0.2)]" />
-                        <span className="min-w-0 truncate">Próximo · {nextLabel}</span>
-                        <b className="ml-auto shrink-0 whitespace-nowrap font-bold text-fg">{nextTime}</b>
-                      </div>
-                    )}
-                  </div>
-                  <span className="self-center pr-3 text-muted2" aria-hidden>
-                    ›
-                  </span>
-                </Link>
-              </li>
+              <GroupCard
+                key={g.id}
+                id={g.id}
+                name={g.name}
+                color={pal.c}
+                accent={pal.a}
+                rank={mine?.rank ?? null}
+                members={members}
+                points={mine?.total_points ?? 0}
+                pending={pending}
+                nextLabel={nextLabel}
+                nextTime={nextTime}
+                isOwner={g.owner_id === session.sub}
+              />
             );
           })}
         </ul>
