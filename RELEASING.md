@@ -1,0 +1,48 @@
+# Flujo de versiones y backups — QuiniBall
+
+QuiniBall en Android es una **cáscara Capacitor que carga la web de Vercel en
+vivo**. Esto define dos tipos de cambio muy distintos:
+
+## 1. Cambios de WEB / lógica (la mayoría)
+Ejemplos: nuevas pantallas, reglas de puntuación, textos, estilos, partido
+estrella, perfil, etc.
+
+- **Llegan a TODOS (web, iPhone y la app Android) con solo desplegar en Vercel.**
+- **NO requieren** regenerar el AAB ni subir nada a Google Play.
+- Flujo: commit → `git tag vX.Y` (backup) → push a `main` → Vercel despliega solo.
+
+## 2. Cambios NATIVOS (puntuales)
+Ejemplos: icono, splash, permisos, nombre/ID de la app, **notificaciones push**,
+plugins de Capacitor.
+
+- **Sí requieren** nuevo AAB y subirlo a Play Console como actualización.
+- Hay que subir **versionCode** (entero, +1 cada subida) y **versionName**
+  (texto visible) en `android/app/build.gradle`.
+
+### Regenerar el AAB firmado (solo para cambios nativos)
+1. Sube versión en `android/app/build.gradle`:
+   - `versionCode 2` (cada subida a Play debe ser mayor que la anterior)
+   - `versionName "1.1"`
+2. Sincroniza y compila:
+   ```bash
+   npx cap sync android
+   # con JAVA_HOME apuntando al JBR de Android Studio:
+   android/gradlew -p android bundleRelease
+   ```
+3. AAB firmado en: `android/app/build/outputs/bundle/release/app-release.aab`
+4. Súbelo en Play Console → nueva versión.
+
+> Firma: keystore en `F:\Proyectos\quiniball-upload-key.jks` (alias `quiniball`).
+> Credenciales en `android/keystore.properties` (NO se sube a git).
+
+## Backups por versión (git)
+- `git tag -a vX.Y -m "..."` marca un estado recuperable.
+- Volver a una versión: `git checkout vX.Y` (o `git switch -c fix vX.Y`).
+- Historial de tags: `git tag`.
+
+## Registro de versiones
+- **v1.0** — App Android inicial (Capacitor) + privacidad + assets de tienda.
+  Publicada en Google Play (internal testing). `versionCode 1`.
+- **v1.1** — Partido estrella por quiniela, perfil editable (nombre de usuario),
+  renombrar quiniela, botón 1X2 más claro. *(Cambio de web/lógica: se entrega
+  por Vercel; no necesita AAB nuevo.)*
