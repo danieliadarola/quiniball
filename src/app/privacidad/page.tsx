@@ -18,8 +18,8 @@ export const metadata: Metadata = {
 
 // Contacto de privacidad que se muestra públicamente. Cámbialo si prefieres
 // otro correo distinto al de la cuenta de administración.
-const CONTACT_EMAIL = "danieliadarola@gmail.com";
-const LAST_UPDATED = "8 de junio de 2026";
+const CONTACT_EMAIL = "rudami2026@gmail.com";
+const LAST_UPDATED = "9 de junio de 2026";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
