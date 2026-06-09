@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { APP_NAME } from "@/config/defaults";
+import { getSession } from "@/lib/auth/session";
 
 /**
  * Política de privacidad pública de QuiniBall.
@@ -32,12 +33,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export default function PrivacidadPage() {
+export default async function PrivacidadPage() {
+  // "Volver" consciente de la sesión: si has entrado, te devuelve a tus
+  // quinielas (no a la landing pública, que parece un cierre de sesión).
+  const session = await getSession();
+  const backHref = session ? "/grupos" : "/";
+  const backLabel = session ? "Volver a mis quinielas" : `Volver a ${APP_NAME}`;
+
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-10 px-5 py-10 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:2.5rem] sm:py-14">
       <header className="flex flex-col gap-3">
-        <Link href="/" className="w-fit text-sm font-semibold text-primary hover:underline">
-          ← Volver a {APP_NAME}
+        <Link href={backHref} className="w-fit text-sm font-semibold text-primary hover:underline">
+          ← {backLabel}
         </Link>
         <h1 className="font-display text-4xl font-extrabold italic uppercase leading-[0.95] tracking-wide text-fg sm:text-5xl">
           Política de privacidad
