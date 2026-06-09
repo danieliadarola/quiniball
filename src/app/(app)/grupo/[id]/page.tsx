@@ -106,7 +106,12 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   const jornadas: JornadaVM[] = matchdays.map((md) => {
     const ms = matches
       .filter((m) => m.matchday_id === md.id)
-      .sort((a, b) => a.match_number - b.match_number);
+      // Cronológico: el nº oficial FIFA no va por fecha, así que ordenamos por
+      // hora de inicio (con el nº de partido como desempate por estabilidad).
+      .sort(
+        (a, b) =>
+          Date.parse(a.kickoff_at) - Date.parse(b.kickoff_at) || a.match_number - b.match_number,
+      );
 
     const vms: MatchVM[] = ms.map((m) => {
       const home = m.home_team_id ? getTeam(m.home_team_id) : undefined;

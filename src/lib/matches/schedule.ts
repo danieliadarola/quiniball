@@ -65,7 +65,11 @@ export function groupIntoSections<T extends SchedulableMatch>(
   }
 
   return SECTION_ORDER.filter((key) => buckets.has(key)).map((key) => {
-    const list = buckets.get(key)!.sort((a, b) => a.matchNumber - b.matchNumber);
+    // Cronológico dentro de la sección: el nº oficial FIFA no sigue la fecha,
+    // así que ordenamos por kickoff (nº de partido como desempate estable).
+    const list = buckets
+      .get(key)!
+      .sort((a, b) => Date.parse(a.kickoff) - Date.parse(b.kickoff) || a.matchNumber - b.matchNumber);
     const earliestKickoffMs = Math.min(...list.map((m) => Date.parse(m.kickoff)));
     return { key, label: SECTION_LABELS[key], matches: list, earliestKickoffMs };
   });
