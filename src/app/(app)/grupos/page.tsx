@@ -4,6 +4,7 @@ import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff } from "@/lib/matches/format";
 import { isPredictionLocked } from "@/lib/matches/schedule";
 import { GroupCard } from "@/components/groups/GroupCard";
+import { ManageGroupsButton } from "@/components/groups/ManageGroupsButton";
 
 export const metadata = { title: "Mis quinielas · QuiniBall" };
 
@@ -116,6 +117,17 @@ export default async function GruposPage() {
         <span className="rounded-lg bg-surface3 px-2 py-0.5 text-xs font-extrabold text-muted">
           {groups.length}
         </span>
+        {groups.length > 0 && (
+          <div className="ml-auto">
+            <ManageGroupsButton
+              groups={groups.map((g) => ({
+                id: g.id,
+                name: g.name,
+                isOwner: g.owner_id === session.sub,
+              }))}
+            />
+          </div>
+        )}
       </div>
 
       {groups.length === 0 ? (
