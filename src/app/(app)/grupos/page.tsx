@@ -90,26 +90,14 @@ export default async function GruposPage() {
     predsByGroup.get(p.group_id)!.add(p.match_number);
   }
 
-  const totalPts = [...mineByGroup.values()].reduce((s, r) => s + r.total_points, 0);
-
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-0 px-5 py-6 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:1.5rem]">
-      {/* Saludo + puntos totales */}
-      <div className="mb-1 flex items-end justify-between">
-        <div>
-          <span className="text-sm font-semibold text-muted">Hola,</span>
-          <h1 className="font-display text-4xl font-extrabold italic uppercase leading-[0.9] text-fg">
-            {session.display_name}
-          </h1>
-        </div>
-        <div className="rounded-2xl border border-line bg-surface2 px-4 py-2 text-right">
-          <span className="block font-display text-2xl font-extrabold leading-none text-accent">
-            {totalPts}
-          </span>
-          <span className="text-[10px] font-bold uppercase tracking-wide text-muted">
-            pts totales
-          </span>
-        </div>
+      {/* Saludo */}
+      <div className="mb-1">
+        <span className="text-sm font-semibold text-muted">Hola,</span>
+        <h1 className="font-display text-4xl font-extrabold italic uppercase leading-[0.9] text-fg">
+          {session.display_name}
+        </h1>
       </div>
 
       <div className="mb-3 mt-6 flex items-center gap-2">
