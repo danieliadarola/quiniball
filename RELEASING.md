@@ -48,3 +48,6 @@ plugins de Capacitor.
   por Vercel; no necesita AAB nuevo.)*
 - **v1.2** — Salir de una quiniela por tu cuenta y eliminarla deslizando en el
   dashboard (dueño). RPC `leave_group` (migración 0012). *(Web/lógica; por Vercel.)*
+- **v1.3** — El calendario se ordena por fecha de inicio (kickoff) en vez de por
+  el número oficial de partido (que no es cronológico), tanto en la vista de
+  pronósticos como en el panel de admin. *(Web/lógica; por Vercel.)*
