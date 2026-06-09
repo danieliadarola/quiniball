@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getSession, getSupabaseForCurrentUser } from "@/lib/auth/session";
 import { isCurrentUserAdmin } from "@/lib/admin/auth";
 import { fetchStandings } from "@/lib/standings/fetch";
+import { fetchHistory } from "@/lib/history/fetch";
 import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff, formatDay } from "@/lib/matches/format";
 import { isPredictionLocked, PREDICTION_LOCK_LEAD_MS } from "@/lib/matches/schedule";
@@ -93,6 +94,10 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       fetchStandings(sb, id),
     ]);
 
+  // Historial (puntos + eventos). Usa admin internamente; la pertenencia ya
+  // está garantizada porque el grupo cargó con RLS.
+  const history = await fetchHistory(id);
+
   const matchdays = mdRows ?? [];
   const matches = matchRows ?? [];
   const featuredSet = new Set((featRows ?? []).map((f) => f.match_number));
@@ -181,6 +186,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       ownerId={group.owner_id}
       canManage={canManage}
       managerIds={managerIds}
+      history={history}
     />
   );
 }

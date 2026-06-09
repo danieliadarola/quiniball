@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { MatchCard, type MatchVM, type PredVM } from "@/components/predictions/MatchCard";
 import { RankingLive } from "@/components/ranking/RankingLive";
 import { ManageTab } from "@/components/quiniela/ManageTab";
+import { HistoryTab } from "@/components/quiniela/HistoryTab";
 import { renameGroup } from "@/app/(app)/grupos/actions";
 import type { StandingRow } from "@/lib/standings/fetch";
+import type { HistoryItem } from "@/lib/history/fetch";
 
 export interface JornadaVM {
   code: string;
@@ -43,6 +45,7 @@ export function QuinielaScreen({
   ownerId,
   canManage,
   managerIds,
+  history,
 }: {
   groupId: string;
   name: string;
@@ -57,8 +60,9 @@ export function QuinielaScreen({
   ownerId: string;
   canManage: boolean;
   managerIds: string[];
+  history: HistoryItem[];
 }) {
-  const [tab, setTab] = useState<"partidos" | "ranking" | "gestionar">("partidos");
+  const [tab, setTab] = useState<"partidos" | "ranking" | "historial" | "gestionar">("partidos");
   const initialJ = useMemo(() => {
     const live = jornadas.findIndex((j) => j.status === "live");
     if (live >= 0) return live;
@@ -113,18 +117,24 @@ export function QuinielaScreen({
       </header>
 
       {/* Pestañas */}
-      <div className="mx-auto flex w-full max-w-md gap-2 px-4 pb-2.5 pt-1 safe-px [--pad-x:1rem]">
-        {(["partidos", "ranking", "gestionar"] as const).map((t) => (
+      <div className="mx-auto flex w-full max-w-lg gap-1.5 px-4 pb-2.5 pt-1 safe-px [--pad-x:1rem]">
+        {(["partidos", "ranking", "historial", "gestionar"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-extrabold transition ${
+            className={`flex-1 rounded-xl border px-2 py-2.5 text-[13px] font-extrabold transition ${
               tab === t
                 ? "border-transparent bg-primary text-primary-ink"
                 : "border-line bg-surface2 text-muted"
             }`}
           >
-            {t === "partidos" ? "Partidos" : t === "ranking" ? "Ranking" : "Gestionar"}
+            {t === "partidos"
+              ? "Partidos"
+              : t === "ranking"
+                ? "Ranking"
+                : t === "historial"
+                  ? "Historial"
+                  : "Gestionar"}
           </button>
         ))}
       </div>
@@ -198,6 +208,10 @@ export function QuinielaScreen({
             currentProfileId={currentProfileId}
             initialRows={standings}
           />
+        </div>
+      ) : tab === "historial" ? (
+        <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
+          <HistoryTab items={history} currentProfileId={currentProfileId} />
         </div>
       ) : (
         <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
