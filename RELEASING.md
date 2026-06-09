@@ -51,3 +51,9 @@ plugins de Capacitor.
 - **v1.3** — El calendario se ordena por fecha de inicio (kickoff) en vez de por
   el número oficial de partido (que no es cronológico), tanto en la vista de
   pronósticos como en el panel de admin. *(Web/lógica; por Vercel.)*
+- **v1.4** — Punto de restauración previo al historial de acciones. Incluye:
+  contacto de privacidad a rudami2026@gmail.com; footer con privacidad +
+  copyright; recordar email en el login; "Volver" de privacidad respeta la
+  sesión; botón "Gestionar" en el dashboard; pestaña "Gestionar" en la quiniela
+  con co-organizadores (migración 0013) y Ranking solo con puntos; quitada la
+  caja de "puntos totales". *(Web/lógica; por Vercel.)*
