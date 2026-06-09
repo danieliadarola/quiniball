@@ -24,9 +24,34 @@ function mapRpcError(message?: string): string {
   if (m.includes("CANNOT_REMOVE_OWNER")) {
     return "No puedes eliminar al organizador. Transfiere antes el liderato.";
   }
+  if (m.includes("CANNOT_CHANGE_OWNER")) {
+    return "El organizador ya tiene todos los permisos.";
+  }
   if (m.includes("NOT_A_MEMBER")) return "Ese jugador ya no está en la quiniela.";
   if (m.includes("GROUP_NOT_FOUND")) return "La quiniela ya no existe.";
   return "No se pudo completar la acción. Inténtalo de nuevo.";
+}
+
+/** Nombra o retira a un miembro como co-organizador (solo el dueño/admin). */
+export async function setManager(
+  groupId: string,
+  profileId: string,
+  value: boolean,
+): Promise<ManageState> {
+  if (!groupId || !profileId) return { error: "Datos no válidos." };
+
+  const sb = await getSupabaseForCurrentUser();
+  if (!sb) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+
+  const { error } = await sb.rpc("set_member_manager", {
+    p_group_id: groupId,
+    p_profile_id: profileId,
+    p_value: value,
+  });
+  if (error) return { error: mapRpcError(error.message) };
+
+  revalidatePath(`/grupo/${groupId}`);
+  return { ok: true };
 }
 
 /** Expulsa a un jugador (borra su pertenencia y sus pronósticos del grupo). */

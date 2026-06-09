@@ -67,7 +67,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
     .maybeSingle()) as { data: GroupRow | null };
   if (!group) notFound();
 
-  const [{ data: mdRows }, { data: matchRows }, { data: predRows }, { data: featRows }, standings] =
+  const [{ data: mdRows }, { data: matchRows }, { data: predRows }, { data: featRows }, { data: memberRows }, standings] =
     await Promise.all([
       sb.from("matchdays").select("id, code, name").order("id") as unknown as Promise<{ data: MatchdayRow[] | null }>,
       sb
@@ -85,6 +85,11 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
         .from("group_featured_matches")
         .select("match_number")
         .eq("group_id", id) as unknown as Promise<{ data: { match_number: number }[] | null }>,
+      // Co-organizadores de la quiniela (para mostrar y gestionar roles).
+      sb
+        .from("group_members")
+        .select("profile_id, is_manager")
+        .eq("group_id", id) as unknown as Promise<{ data: { profile_id: string; is_manager: boolean }[] | null }>,
       fetchStandings(sb, id),
     ]);
 
@@ -152,6 +157,8 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
     };
   });
 
+  const managerIds = (memberRows ?? []).filter((m) => m.is_manager).map((m) => m.profile_id);
+
   const me = standings.find((r) => r.profileId === session.sub);
   const origin = await getOrigin();
 
@@ -173,6 +180,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       currentProfileId={session.sub}
       ownerId={group.owner_id}
       canManage={canManage}
+      managerIds={managerIds}
     />
   );
 }

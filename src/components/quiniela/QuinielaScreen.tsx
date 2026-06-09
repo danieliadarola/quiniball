@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MatchCard, type MatchVM, type PredVM } from "@/components/predictions/MatchCard";
 import { RankingLive } from "@/components/ranking/RankingLive";
-import { ShareCode } from "@/components/groups/ShareCode";
+import { ManageTab } from "@/components/quiniela/ManageTab";
 import { renameGroup } from "@/app/(app)/grupos/actions";
 import type { StandingRow } from "@/lib/standings/fetch";
 
@@ -42,6 +42,7 @@ export function QuinielaScreen({
   currentProfileId,
   ownerId,
   canManage,
+  managerIds,
 }: {
   groupId: string;
   name: string;
@@ -55,8 +56,9 @@ export function QuinielaScreen({
   currentProfileId: string;
   ownerId: string;
   canManage: boolean;
+  managerIds: string[];
 }) {
-  const [tab, setTab] = useState<"partidos" | "ranking">("partidos");
+  const [tab, setTab] = useState<"partidos" | "ranking" | "gestionar">("partidos");
   const initialJ = useMemo(() => {
     const live = jornadas.findIndex((j) => j.status === "live");
     if (live >= 0) return live;
@@ -66,9 +68,8 @@ export function QuinielaScreen({
   const [jIdx, setJIdx] = useState(initialJ);
   const j = jornadas[jIdx];
 
-  // Edición del nombre de la quiniela (solo el dueño).
+  // Edición del nombre de la quiniela (dueño o co-organizador).
   const router = useRouter();
-  const isOwner = currentProfileId === ownerId;
   const [groupName, setGroupName] = useState(name);
   const [editing, setEditing] = useState(false);
 
@@ -87,7 +88,7 @@ export function QuinielaScreen({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <h1 className="truncate text-lg font-extrabold">{groupName}</h1>
-            {isOwner && (
+            {canManage && (
               <button
                 type="button"
                 onClick={() => setEditing(true)}
@@ -113,7 +114,7 @@ export function QuinielaScreen({
 
       {/* Pestañas */}
       <div className="mx-auto flex w-full max-w-md gap-2 px-4 pb-2.5 pt-1 safe-px [--pad-x:1rem]">
-        {(["partidos", "ranking"] as const).map((t) => (
+        {(["partidos", "ranking", "gestionar"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -123,7 +124,7 @@ export function QuinielaScreen({
                 : "border-line bg-surface2 text-muted"
             }`}
           >
-            {t === "partidos" ? "Partidos" : "Ranking"}
+            {t === "partidos" ? "Partidos" : t === "ranking" ? "Ranking" : "Gestionar"}
           </button>
         ))}
       </div>
@@ -187,22 +188,31 @@ export function QuinielaScreen({
             ))}
           </div>
         </div>
-      ) : (
-        <div className="flex flex-col gap-6 px-4 pt-4 safe-px [--pad-x:1rem] lg:grid lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+      ) : tab === "ranking" ? (
+        <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
           <RankingLive
             groupId={groupId}
             groupName={groupName}
             ownerId={ownerId}
-            canManage={canManage}
+            canManage={false}
             currentProfileId={currentProfileId}
             initialRows={standings}
           />
-
-          {/* Invitar */}
-          <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5">
-            <h3 className="font-display text-lg font-extrabold uppercase tracking-wide">Invita a tu gente</h3>
-            <ShareCode code={joinCode} url={inviteUrl} />
-          </section>
+        </div>
+      ) : (
+        <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
+          <ManageTab
+            groupId={groupId}
+            groupName={groupName}
+            joinCode={joinCode}
+            inviteUrl={inviteUrl}
+            ownerId={ownerId}
+            currentProfileId={currentProfileId}
+            canManage={canManage}
+            managerIds={managerIds}
+            members={standings}
+            onChanged={() => router.refresh()}
+          />
         </div>
       )}
 

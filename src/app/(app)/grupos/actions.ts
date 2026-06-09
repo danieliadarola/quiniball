@@ -70,14 +70,14 @@ export async function renameGroup(
   const sb = await getSupabaseForCurrentUser();
   if (!sb) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
 
-  const { data, error } = await sb
-    .from("groups")
-    .update({ name })
-    .eq("id", groupId)
-    .select("id");
-
-  if (error || !data || data.length === 0) {
-    return { error: "No se pudo cambiar el nombre (¿eres el creador?)." };
+  // RPC `rename_group`: permite al dueño Y a los co-organizadores renombrar
+  // (la RLS de UPDATE solo dejaba al dueño).
+  const { error } = await sb.rpc("rename_group", { p_group_id: groupId, p_name: name });
+  if (error) {
+    if (error.message.includes("NOT_AUTHORIZED")) {
+      return { error: "No tienes permisos para renombrar esta quiniela." };
+    }
+    return { error: "No se pudo cambiar el nombre. Inténtalo de nuevo." };
   }
 
   revalidatePath(`/grupo/${groupId}`);
