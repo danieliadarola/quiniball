@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth/session";
 import { isCurrentUserAdmin } from "@/lib/admin/auth";
 import { logout } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/Logo";
+import { SiteFooter } from "@/components/ui/SiteFooter";
 
 /**
  * Layout del área autenticada. Protege TODAS las rutas hijas: sin sesión
@@ -55,6 +56,7 @@ export default async function AppLayout({
         </div>
       </header>
       {children}
+      <SiteFooter />
     </div>
   );
 }

@@ -1,14 +1,36 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { loginWithEmail, type AuthState } from "@/app/(auth)/actions";
 import { AuthField } from "./AuthField";
 
 const initialState: AuthState = {};
+const LAST_EMAIL_KEY = "qb_last_email";
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(loginWithEmail, initialState);
+
+  // Recordamos el último email en este dispositivo para no tener que
+  // reescribirlo (útil en Safari iOS). Se rellena tras montar para no romper la
+  // hidratación; el PIN nunca se guarda.
+  const [email, setEmail] = useState("");
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(LAST_EMAIL_KEY);
+      if (saved) setEmail(saved);
+    } catch {
+      /* localStorage no disponible (modo privado): se ignora */
+    }
+  }, []);
+
+  function rememberEmail() {
+    try {
+      if (email.trim()) localStorage.setItem(LAST_EMAIL_KEY, email.trim());
+    } catch {
+      /* sin persistencia en modo privado */
+    }
+  }
 
   return (
     <form action={action} className="flex flex-col gap-5">
@@ -18,6 +40,9 @@ export function LoginForm() {
         type="email"
         placeholder="tu@email.com"
         autoComplete="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onBlur={rememberEmail}
         required
       />
       <AuthField
