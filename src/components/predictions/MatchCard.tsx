@@ -198,6 +198,10 @@ export function MatchCard({
             <>
               Acertaste <b className="font-display text-base">+{earned} pts</b>
             </>
+          ) : pick === null ? (
+            <>
+              No pronosticaste <b className="font-display text-base">0 pts</b>
+            </>
           ) : (
             <>
               Fallaste <b className="font-display text-base">0 pts</b>
@@ -254,13 +258,36 @@ function PickRow({
   return (
     <div className="flex gap-2">
       {options.map(([k, label]) => {
+        const isPick = pick === k;
+        const isResult = resultOutcome === k;
+
         let cls =
           "flex flex-1 flex-col items-center gap-px rounded-xl border bg-surface2 px-1 py-2.5 transition duration-150";
+        // Sub-etiqueta inferior: en partido cerrado describe el rol de la opción
+        // (tu acierto/fallo o el resultado real); abierto, el nombre 1X2.
+        let sub = label;
+        let subCls = isPick && !finished ? "text-white/85" : "text-muted";
+
         if (finished) {
-          if (k === resultOutcome) cls += " border-good text-good";
-          else if (pick === k) cls += " border-bad text-bad";
-          else cls += " border-line text-fg opacity-40";
-        } else if (pick === k) {
+          // El color marca SIEMPRE la elección del usuario: verde si acertó,
+          // rojo si falló. El ganador real, si no era su pick, se señala en
+          // neutro con la etiqueta "Resultado" (sin verde, para no confundir).
+          if (isPick && isResult) {
+            cls += " border-good text-good bg-good/10";
+            sub = "Tu acierto";
+            subCls = "text-good";
+          } else if (isPick) {
+            cls += " border-bad text-bad bg-bad/5";
+            sub = "Tu fallo";
+            subCls = "text-bad";
+          } else if (isResult) {
+            cls += " border-line2 text-fg";
+            sub = "Resultado";
+            subCls = "text-muted";
+          } else {
+            cls += " border-line text-fg opacity-40";
+          }
+        } else if (isPick) {
           // Elección activa: muy marcada (color del cubo + halo blanco + relieve).
           cls += ` z-[1] scale-[1.06] border-transparent ${CUBE[k].bg} text-white shadow-xl ring-2 ring-white/75 ${CUBE[k].ring}`;
         } else {
@@ -282,12 +309,8 @@ function PickRow({
             >
               {k}
             </span>
-            <span
-              className={`text-[10px] font-bold uppercase tracking-[0.4px] ${
-                pick === k && !finished ? "text-white/85" : "text-muted"
-              }`}
-            >
-              {label}
+            <span className={`text-[10px] font-bold uppercase tracking-[0.4px] ${subCls}`}>
+              {sub}
             </span>
           </button>
         );
