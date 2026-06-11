@@ -57,3 +57,13 @@ plugins de Capacitor.
   sesión; botón "Gestionar" en el dashboard; pestaña "Gestionar" en la quiniela
   con co-organizadores (migración 0013) y Ranking solo con puntos; quitada la
   caja de "puntos totales". *(Web/lógica; por Vercel.)*
+- **v1.5** — Historial de actividad (pestaña "Historial", tabla `group_events`,
+  migración 0014) y **arreglo del bug de visualización de pronósticos**: la
+  consulta de `predictions` no filtraba por usuario, así que cada jugador veía
+  el pick de otro en las tarjetas (marcado "Acierto/Fallo" contra los puntos
+  reales del encabezado). Corregido con `.eq("profile_id", session.sub)`. La
+  tarjeta de partido finalizado se reescribió para que el verde/rojo marque la
+  elección del usuario ("Acierto"/"Fallo"), señale el ganador real como
+  "Resultado" y distinga "No pronosticaste" de "Fallaste". **Los puntos del
+  ranking siempre fueron correctos** (auditoría: 30/30, 0 discrepancias); el
+  fallo era solo de visualización. *(Web/lógica; por Vercel.)*
