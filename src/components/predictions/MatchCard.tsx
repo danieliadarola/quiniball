@@ -274,11 +274,11 @@ function PickRow({
           // neutro con la etiqueta "Resultado" (sin verde, para no confundir).
           if (isPick && isResult) {
             cls += " border-good text-good bg-good/10";
-            sub = "Tu acierto";
+            sub = "Acierto";
             subCls = "text-good";
           } else if (isPick) {
             cls += " border-bad text-bad bg-bad/5";
-            sub = "Tu fallo";
+            sub = "Fallo";
             subCls = "text-bad";
           } else if (isResult) {
             cls += " border-line2 text-fg";
