@@ -80,7 +80,11 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       sb
         .from("predictions")
         .select("match_number, pred_home_goals, pred_away_goals, pred_outcome")
-        .eq("group_id", id) as unknown as Promise<{ data: PredRow[] | null }>,
+        .eq("group_id", id)
+        // SOLO los pronósticos del jugador que mira: la RLS deja leer los de
+        // todo el grupo (para el ranking), así que aquí hay que acotar por
+        // usuario o se pintaría el pronóstico de otro miembro en cada tarjeta.
+        .eq("profile_id", session.sub) as unknown as Promise<{ data: PredRow[] | null }>,
       // Partidos estrella propios de ESTA quiniela (destacado por grupo).
       sb
         .from("group_featured_matches")
