@@ -145,20 +145,23 @@ export async function loginWithEmail(
 /**
  * Cambio OBLIGATORIO de PIN tras un reset del admin. Requiere sesión marcada
  * con `mrp`; fija el nuevo PIN, limpia el flag y re-emite el token sin la marca.
+ *
+ * Es una acción de FORMULARIO NATIVO (recibe solo FormData) para que la pantalla
+ * `/cambiar-pin` sea un componente de servidor puro, sin componente cliente. Los
+ * errores se comunican volviendo a la página con `?e=<motivo>`.
  */
-export async function setNewPinForced(
-  _prev: AuthState,
-  formData: FormData,
-): Promise<AuthState> {
+export async function setNewPinForced(formData: FormData): Promise<void> {
   const session = await getSession();
-  if (!session) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+  if (!session) redirect("/entrar");
 
   const pin = field(formData, "pin");
   const pin2 = field(formData, "pin2");
-  if (!isValidPin(pin)) return { error: "El PIN debe ser exactamente 4 dígitos." };
-  if (pin !== pin2) return { error: "Los dos PIN no coinciden." };
+  if (!isValidPin(pin)) redirect("/cambiar-pin?e=pin");
+  if (pin !== pin2) redirect("/cambiar-pin?e=match");
 
-  let redirectTo: string | null = null;
+  // OJO: redirect() lanza una excepción de control de flujo; nunca dentro del
+  // try/catch de abajo (lo tragaría). Las validaciones de arriba ya están fuera.
+  let ok = false;
   try {
     const admin = createSupabaseAdmin();
     const pin_hash = await hashPin(pin);
@@ -166,17 +169,16 @@ export async function setNewPinForced(
       .from("profiles")
       .update({ pin_hash, must_reset_pin: false, failed_attempts: 0, locked_until: null })
       .eq("id", session.sub);
-    if (error) return { error: "No se pudo guardar el PIN. Inténtalo de nuevo." };
-
-    // Re-emite la sesión sin la marca `mrp` para liberar el resto de la app.
-    await startSession(session.sub, session.display_name ?? "", false);
-    redirectTo = "/grupos";
+    if (!error) {
+      // Re-emite la sesión sin la marca `mrp` para liberar el resto de la app.
+      await startSession(session.sub, session.display_name ?? "", false);
+      ok = true;
+    }
   } catch {
-    return { error: "Error inesperado al cambiar el PIN." };
+    ok = false;
   }
 
-  if (redirectTo) redirect(redirectTo);
-  return {};
+  redirect(ok ? "/grupos" : "/cambiar-pin?e=save");
 }
 
 // ---------------------------------------------------------------------------
