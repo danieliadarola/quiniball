@@ -171,9 +171,12 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   const me = standings.find((r) => r.profileId === session.sub);
   const origin = await getOrigin();
 
+  // Admin global de la app (fundador): habilita la herramienta de edición de
+  // pronósticos ajenos. Se calcula una sola vez y sirve también para `canManage`.
+  const isAppAdmin = await isCurrentUserAdmin();
+
   // Puede gestionar (expulsar/transferir/eliminar) el dueño o el admin global.
-  const canManage =
-    group.owner_id === session.sub ? true : await isCurrentUserAdmin();
+  const canManage = group.owner_id === session.sub ? true : isAppAdmin;
 
   return (
     <QuinielaScreen
@@ -191,6 +194,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       canManage={canManage}
       managerIds={managerIds}
       history={history}
+      isAppAdmin={isAppAdmin}
     />
   );
 }

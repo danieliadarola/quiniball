@@ -7,6 +7,7 @@ import { MatchCard, type MatchVM, type PredVM } from "@/components/predictions/M
 import { RankingLive } from "@/components/ranking/RankingLive";
 import { ManageTab } from "@/components/quiniela/ManageTab";
 import { HistoryTab } from "@/components/quiniela/HistoryTab";
+import { AdminEditPanel } from "@/components/quiniela/AdminEditPanel";
 import { renameGroup } from "@/app/(app)/grupos/actions";
 import type { StandingRow } from "@/lib/standings/fetch";
 import type { HistoryItem } from "@/lib/history/fetch";
@@ -46,6 +47,7 @@ export function QuinielaScreen({
   canManage,
   managerIds,
   history,
+  isAppAdmin,
 }: {
   groupId: string;
   name: string;
@@ -61,6 +63,7 @@ export function QuinielaScreen({
   canManage: boolean;
   managerIds: string[];
   history: HistoryItem[];
+  isAppAdmin: boolean;
 }) {
   const [tab, setTab] = useState<"partidos" | "ranking" | "historial" | "gestionar">("partidos");
   const initialJ = useMemo(() => {
@@ -76,6 +79,7 @@ export function QuinielaScreen({
   const router = useRouter();
   const [groupName, setGroupName] = useState(name);
   const [editing, setEditing] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
 
   return (
     <main className="mx-auto w-full max-w-2xl pb-10 safe-pb [--pad-b:2.5rem] lg:max-w-4xl">
@@ -108,6 +112,20 @@ export function QuinielaScreen({
           </div>
           <span className="text-[11.5px] font-bold tracking-[0.4px] text-muted">Código {joinCode}</span>
         </div>
+        {isAppAdmin && (
+          <button
+            type="button"
+            onClick={() => setAdminOpen(true)}
+            aria-label="Herramienta de administrador"
+            title="Editar pronósticos (admin)"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line text-muted transition hover:border-accent/60 hover:text-accent"
+          >
+            <svg viewBox="0 0 24 24" width="17" height="17" className="qb-stroke" aria-hidden>
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        )}
         <div className="shrink-0 text-right">
           <span className="block font-display text-[22px] font-extrabold leading-none text-accent">
             #{myRank ?? "—"}
@@ -228,6 +246,16 @@ export function QuinielaScreen({
             onChanged={() => router.refresh()}
           />
         </div>
+      )}
+
+      {adminOpen && (
+        <AdminEditPanel
+          groupId={groupId}
+          players={standings}
+          jornadas={jornadas}
+          onClose={() => setAdminOpen(false)}
+          onSaved={() => router.refresh()}
+        />
       )}
 
       {editing && (
