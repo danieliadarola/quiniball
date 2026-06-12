@@ -6,6 +6,7 @@ import { logout } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/Logo";
 import { Avatar } from "@/components/ui/Avatar";
 import { SiteFooter } from "@/components/ui/SiteFooter";
+import { WhatsNew } from "@/components/ui/WhatsNew";
 
 /**
  * Layout del área autenticada. Protege TODAS las rutas hijas: sin sesión
@@ -72,6 +73,7 @@ export default async function AppLayout({
       </header>
       {children}
       <SiteFooter />
+      <WhatsNew />
     </div>
   );
 }
