@@ -67,3 +67,18 @@ plugins de Capacitor.
   "Resultado" y distinga "No pronosticaste" de "Fallaste". **Los puntos del
   ranking siempre fueron correctos** (auditoría: 30/30, 0 discrepancias); el
   fallo era solo de visualización. *(Web/lógica; por Vercel.)*
+- **v1.6** — Herramientas de ADMINISTRADOR (fundador) y recuperación de PIN:
+  - **Editar pronósticos ajenos**: engranaje (solo `is_admin`) en la quiniela
+    para corregir el pick de cualquier jugador en cualquier partido, incluido uno
+    ya finalizado (recalcula puntos con el motor puro). Vista previa de impacto
+    (puntos y cambio de ranking) y confirmación. Oculto y sin rastro en el
+    Historial. Aditivo: no toca `savePrediction`, `MatchCard` ni el motor.
+  - **Dashboard + acceso a quinielas ajenas**: el admin ve un apartado "Otras
+    quinielas" (creadas por otros) y puede entrar a cualquiera (lectura con
+    `service_role`) para editar/gestionar — co-organizador, transferir, eliminar
+    (las RPC ya autorizaban `is_app_admin`). El flujo de los miembros no cambia.
+  - **Reset de PIN olvidado** (migración **0015** `profiles.must_reset_pin`):
+    solo el admin genera un PIN temporal de un solo uso (botón de llave en
+    Gestionar); al entrar con él, la app obliga a elegir un PIN nuevo
+    (`/cambiar-pin`, claim `mrp` en el JWT, guard en el layout `(app)`). El PIN
+    definitivo lo elige siempre el usuario. *(Web/lógica + migración; por Vercel.)*
