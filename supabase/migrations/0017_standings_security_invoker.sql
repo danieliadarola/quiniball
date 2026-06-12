@@ -1,0 +1,15 @@
+-- La vista `standings` se recreó en 0016 sin `security_invoker`, por lo que
+-- quedó como SECURITY DEFINER: se ejecutaba con los permisos del creador y
+-- SALTÁNDOSE la RLS de quien consulta. Eso permitía que un usuario logueado
+-- leyera el ranking (nombres, puntos, avatares) de cualquier quiniela ajena
+-- conociendo su UUID. (Security advisor: 0010_security_definer_view, ERROR.)
+--
+-- Con `security_invoker = true` la vista respeta la RLS del usuario que la
+-- consulta. Las políticas de las tablas base ya permiten lo correcto:
+--   · group_members: SELECT si is_group_member(group_id)  -> miembro ve su grupo.
+--   · predictions:  SELECT propias o de co-miembros en partidos ya empezados
+--                   (los puntos solo existen en partidos finalizados = visibles).
+--   · profiles:     SELECT propio o de co-miembros (shares_group_with).
+-- Resultado: el miembro ve su ranking igual; el no-miembro obtiene 0 filas; el
+-- acceso de admin (service_role) sigue intacto (omite RLS).
+alter view public.standings set (security_invoker = true);
