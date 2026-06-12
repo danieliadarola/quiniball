@@ -11,23 +11,36 @@ export interface AvatarStyleDef {
   label: string;
 }
 
+// Estilos OFRECIDOS en el selector: curados con un tono gracioso/meme.
 export const AVATAR_STYLES: AvatarStyleDef[] = [
-  { key: "avataaars", label: "Personas" },
-  { key: "bottts", label: "Robots" },
   { key: "funEmoji", label: "Emoji" },
-  { key: "adventurer", label: "Aventura" },
-  { key: "micah", label: "Retrato" },
-  { key: "openPeeps", label: "Dibujo" },
-  { key: "pixelArt", label: "Píxel" },
-  { key: "thumbs", label: "Bichos" },
+  { key: "bigSmile", label: "Risas" },
+  { key: "bigEars", label: "Orejón" },
+  { key: "croodles", label: "Garabato" },
+  { key: "thumbs", label: "Bichejos" },
+  { key: "toonHead", label: "Cabezón" },
+  { key: "miniavs", label: "Mini" },
+  { key: "bottts", label: "Robots" },
 ];
 
 export const AVATAR_STYLE_KEYS = AVATAR_STYLES.map((s) => s.key);
 
-export const DEFAULT_AVATAR_STYLE = "avataaars";
+export const DEFAULT_AVATAR_STYLE = "funEmoji";
+
+// Estilos ACEPTADOS al renderizar (superset): incluye los del selector y los
+// que se hayan podido guardar antes, para no romper avatares ya elegidos si
+// cambiamos la lista del selector.
+const ALLOWED_STYLE_KEYS = [
+  ...AVATAR_STYLE_KEYS,
+  "avataaars",
+  "adventurer",
+  "micah",
+  "openPeeps",
+  "pixelArt",
+];
 
 export function isValidAvatarStyle(s: string | null | undefined): s is string {
-  return typeof s === "string" && AVATAR_STYLE_KEYS.includes(s);
+  return typeof s === "string" && ALLOWED_STYLE_KEYS.includes(s);
 }
 
 /** Semilla segura: corta y de caracteres simples (evita abusos en la URL). */
