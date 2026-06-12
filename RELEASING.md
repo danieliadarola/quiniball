@@ -40,6 +40,19 @@ plugins de Capacitor.
 - Volver a una versión: `git checkout vX.Y` (o `git switch -c fix vX.Y`).
 - Historial de tags: `git tag`.
 
+## Numeración de versiones (desde el lanzamiento)
+
+A partir del lanzamiento se usa **versionado semántico `MAYOR.MENOR.PARCHE`**
+(p. ej. `1.0.1`), alineado con el `versionName` de la app Android (lo que ve el
+público en Google Play). Regla:
+- **PARCHE** (`1.0.x`): correcciones sin cambios de funcionalidad.
+- **MENOR** (`1.x.0`): funcionalidad nueva compatible.
+- **MAYOR** (`x.0.0`): cambios grandes/rupturas.
+
+Los tags antiguos **`v1.0`–`v1.6` son historial de desarrollo PRE-lanzamiento**
+(marcadores internos de entregas web). La línea pública real arranca en
+**`v1.0.1`** = primer estado listo y estable para lanzar.
+
 ## Registro de versiones
 - **v1.0** — App Android inicial (Capacitor) + privacidad + assets de tienda.
   Publicada en Google Play (internal testing). `versionCode 1`.
@@ -82,3 +95,11 @@ plugins de Capacitor.
     Gestionar); al entrar con él, la app obliga a elegir un PIN nuevo
     (`/cambiar-pin`, claim `mrp` en el JWT, guard en el layout `(app)`). El PIN
     definitivo lo elige siempre el usuario. *(Web/lógica + migración; por Vercel.)*
+- **v1.0.1 — LANZAMIENTO (reinicio de numeración a semver).** Estado listo y
+  estable para lanzar: equivale a todo lo anterior (v1.0–v1.6) **más el arreglo
+  de `/cambiar-pin`**, que rompía en Vercel ("Could not find the module … in the
+  React Client Manifest") por un cruce estático/dinámico del módulo de server
+  actions; se reescribió como componente de servidor puro (formulario nativo, sin
+  componente cliente). `versionName` de Android pasa a `1.0.1`. *(Web/lógica +
+  build.gradle; el cambio web va por Vercel, el `versionName` aplica al próximo
+  AAB, que subirá `versionCode` a 2.)*
