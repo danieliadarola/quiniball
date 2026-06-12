@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
 import { refreshStandings } from "@/app/(app)/grupo/[id]/ranking/actions";
-import { RankingTable } from "@/components/ranking/RankingTable";
+import { RankingBoard } from "@/components/ranking/RankingBoard";
 import { RankingManageList } from "@/components/ranking/RankingManageList";
 import type { StandingRow } from "@/lib/standings/fetch";
 
@@ -98,7 +98,7 @@ export function RankingLive({
           onChanged={refresh}
         />
       ) : (
-        <RankingTable rows={rows} currentProfileId={currentProfileId} />
+        <RankingBoard rows={rows} currentProfileId={currentProfileId} />
       )}
     </div>
   );
