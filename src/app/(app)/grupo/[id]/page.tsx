@@ -4,7 +4,7 @@ import { getSession, getSupabaseForCurrentUser } from "@/lib/auth/session";
 import { isCurrentUserAdmin } from "@/lib/admin/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { fetchStandings } from "@/lib/standings/fetch";
-import { fetchHistory } from "@/lib/history/fetch";
+import { fetchMatchPicks } from "@/lib/history/picks";
 import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff, formatDay } from "@/lib/matches/format";
 import { isPredictionLocked, PREDICTION_LOCK_LEAD_MS } from "@/lib/matches/schedule";
@@ -121,14 +121,14 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       fetchStandings(db, id),
     ]);
 
-  // Historial (puntos + eventos). Usa admin internamente; la pertenencia ya
-  // está garantizada porque el grupo cargó con RLS.
-  const history = await fetchHistory(id);
-
   const matchdays = mdRows ?? [];
   const matches = matchRows ?? [];
   const featuredSet = new Set((featRows ?? []).map((f) => f.match_number));
   const now = Date.now();
+
+  // Historial: partidos ya empezados con los pronósticos de cada jugador. Usa el
+  // mismo cliente `db` (RLS de miembro o service_role en modo admin-ajeno).
+  const matchPicks = await fetchMatchPicks(db, id, standings, now);
 
   const predByMatch = new Map<number, PredVM>(
     (predRows ?? []).map((p) => [
@@ -212,7 +212,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       ownerId={group.owner_id}
       canManage={canManage}
       managerIds={managerIds}
-      history={history}
+      matchPicks={matchPicks}
       isAppAdmin={isAppAdmin}
       isMember={isMember}
     />

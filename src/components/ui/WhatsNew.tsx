@@ -12,8 +12,13 @@ const STORAGE_KEY = "qb_whatsnew";
 
 const WHATS_NEW = {
   // Cambia esta fecha/clave cuando haya novedades que anunciar.
-  version: "2026-06-12",
+  version: "2026-06-12b",
   items: [
+    {
+      icon: "🔎",
+      title: "Historial con los pronósticos",
+      text: "En cada partido empezado puedes ver qué pronosticó cada jugador y los puntos que sacó.",
+    },
     {
       icon: "🏆",
       title: "Ranking renovado",

@@ -10,7 +10,7 @@ import { HistoryTab } from "@/components/quiniela/HistoryTab";
 import { AdminEditPanel } from "@/components/quiniela/AdminEditPanel";
 import { renameGroup } from "@/app/(app)/grupos/actions";
 import type { StandingRow } from "@/lib/standings/fetch";
-import type { HistoryItem } from "@/lib/history/fetch";
+import type { MatchPicks } from "@/lib/history/picks";
 
 export interface JornadaVM {
   code: string;
@@ -46,7 +46,7 @@ export function QuinielaScreen({
   ownerId,
   canManage,
   managerIds,
-  history,
+  matchPicks,
   isAppAdmin,
   isMember,
 }: {
@@ -63,7 +63,7 @@ export function QuinielaScreen({
   ownerId: string;
   canManage: boolean;
   managerIds: string[];
-  history: HistoryItem[];
+  matchPicks: MatchPicks[];
   isAppAdmin: boolean;
   isMember: boolean;
 }) {
@@ -231,7 +231,7 @@ export function QuinielaScreen({
         </div>
       ) : tab === "historial" ? (
         <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
-          <HistoryTab items={history} currentProfileId={currentProfileId} />
+          <HistoryTab matches={matchPicks} currentProfileId={currentProfileId} />
         </div>
       ) : (
         <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
