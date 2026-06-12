@@ -22,8 +22,9 @@ const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 días
 export async function startSession(
   profileId: string,
   displayName: string,
+  mustResetPin = false,
 ): Promise<void> {
-  const token = await mintAccessToken(profileId, displayName);
+  const token = await mintAccessToken(profileId, displayName, mustResetPin);
   const jar = await cookies();
   jar.set(COOKIE_NAME, token, {
     httpOnly: true,

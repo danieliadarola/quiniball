@@ -22,15 +22,23 @@ export interface SessionClaims extends JWTPayload {
   sub: string;          // profile.id
   role: "authenticated";
   display_name?: string;
+  /** must reset pin: la cuenta entró con un PIN temporal y debe cambiarlo ya. */
+  mrp?: boolean;
 }
 
 /** Firma un token de sesión para un perfil. */
 export async function mintAccessToken(
   profileId: string,
   displayName?: string,
+  mustResetPin = false,
 ): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
-  return new SignJWT({ role: "authenticated", display_name: displayName })
+  return new SignJWT({
+    role: "authenticated",
+    display_name: displayName,
+    // Solo se incluye cuando aplica, para no engordar el token en el caso normal.
+    ...(mustResetPin ? { mrp: true } : {}),
+  })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
     .setSubject(profileId)
     .setAudience("authenticated")

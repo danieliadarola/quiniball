@@ -15,6 +15,8 @@ export default async function AppLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await getSession();
   if (!session) redirect("/entrar");
+  // Entró con un PIN temporal: no puede usar la app hasta elegir uno nuevo.
+  if (session.mrp) redirect("/cambiar-pin");
 
   const isAdmin = await isCurrentUserAdmin();
 

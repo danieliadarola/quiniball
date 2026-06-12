@@ -13,7 +13,7 @@
  */
 import { redirect } from "next/navigation";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
-import { startSession, endSession } from "@/lib/auth/session";
+import { startSession, endSession, getSession } from "@/lib/auth/session";
 import { hashPin, isValidPin, verifyPin } from "@/lib/auth/pin";
 import { LOGIN_LOCK_MS, MAX_LOGIN_FAILURES } from "@/lib/auth/verification";
 
@@ -93,7 +93,7 @@ export async function loginWithEmail(
     const admin = createSupabaseAdmin();
     const { data: profile } = await admin
       .from("profiles")
-      .select("id, display_name, pin_hash, failed_attempts, locked_until")
+      .select("id, display_name, pin_hash, failed_attempts, locked_until, must_reset_pin")
       .eq("email", email)
       .maybeSingle();
 
@@ -128,10 +128,51 @@ export async function loginWithEmail(
       .update({ failed_attempts: 0, locked_until: null })
       .eq("id", profile.id);
 
-    await startSession(profile.id, profile.display_name);
-    redirectTo = "/grupos";
+    // Si entró con un PIN temporal (reseteado por el admin), la sesión queda
+    // marcada y se le lleva a la pantalla OBLIGATORIA de cambio de PIN.
+    const mustReset = Boolean(profile.must_reset_pin);
+    await startSession(profile.id, profile.display_name, mustReset);
+    redirectTo = mustReset ? "/cambiar-pin" : "/grupos";
   } catch {
     return { error: "Error inesperado al entrar." };
+  }
+
+  if (redirectTo) redirect(redirectTo);
+  return {};
+}
+
+// ---------------------------------------------------------------------------
+/**
+ * Cambio OBLIGATORIO de PIN tras un reset del admin. Requiere sesión marcada
+ * con `mrp`; fija el nuevo PIN, limpia el flag y re-emite el token sin la marca.
+ */
+export async function setNewPinForced(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const session = await getSession();
+  if (!session) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+
+  const pin = field(formData, "pin");
+  const pin2 = field(formData, "pin2");
+  if (!isValidPin(pin)) return { error: "El PIN debe ser exactamente 4 dígitos." };
+  if (pin !== pin2) return { error: "Los dos PIN no coinciden." };
+
+  let redirectTo: string | null = null;
+  try {
+    const admin = createSupabaseAdmin();
+    const pin_hash = await hashPin(pin);
+    const { error } = await admin
+      .from("profiles")
+      .update({ pin_hash, must_reset_pin: false, failed_attempts: 0, locked_until: null })
+      .eq("id", session.sub);
+    if (error) return { error: "No se pudo guardar el PIN. Inténtalo de nuevo." };
+
+    // Re-emite la sesión sin la marca `mrp` para liberar el resto de la app.
+    await startSession(session.sub, session.display_name ?? "", false);
+    redirectTo = "/grupos";
+  } catch {
+    return { error: "Error inesperado al cambiar el PIN." };
   }
 
   if (redirectTo) redirect(redirectTo);

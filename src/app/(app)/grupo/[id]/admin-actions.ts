@@ -19,6 +19,7 @@
 import { revalidatePath } from "next/cache";
 import { isCurrentUserAdmin } from "@/lib/admin/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
+import { hashPin } from "@/lib/auth/pin";
 import { scoreMatch } from "@/lib/scoring/match";
 import type { Outcome } from "@/lib/scoring/types";
 
@@ -45,6 +46,14 @@ export interface SaveResult {
   error?: string;
   ok?: boolean;
   newPoints?: number;
+}
+
+export interface ResetPinResult {
+  error?: string;
+  ok?: boolean;
+  /** PIN temporal generado (se muestra UNA vez al admin para dárselo). */
+  tempPin?: string;
+  playerName?: string;
 }
 
 function deriveOutcome(h: number, a: number): Outcome {
@@ -239,5 +248,46 @@ export async function saveAdminPrediction(input: {
     return { ok: true, newPoints: points ?? 0 };
   } catch {
     return { error: "Error inesperado al guardar." };
+  }
+}
+
+/**
+ * Resetea el PIN de un jugador a uno TEMPORAL de 4 dígitos. Solo el admin
+ * global. Devuelve el PIN temporal (que el admin transmite a la persona); al
+ * entrar con él, la app obliga a elegir uno nuevo (must_reset_pin = true).
+ */
+export async function resetMemberPin(profileId: string): Promise<ResetPinResult> {
+  try {
+    if (!profileId) return { error: "Datos no válidos." };
+    if (!(await isCurrentUserAdmin())) return { error: "No autorizado." };
+
+    const admin = createSupabaseAdmin();
+
+    const { data: prof } = (await admin
+      .from("profiles")
+      .select("id, display_name")
+      .eq("id", profileId)
+      .maybeSingle()) as { data: { id: string; display_name: string } | null };
+    if (!prof) return { error: "No se encontró a ese jugador." };
+
+    // PIN temporal de 4 dígitos (admite ceros a la izquierda, p.ej. "0421").
+    const tempPin = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
+    const pin_hash = await hashPin(tempPin);
+
+    const { error } = await admin
+      .from("profiles")
+      .update({
+        pin_hash,
+        must_reset_pin: true,
+        // Limpia cualquier bloqueo por intentos fallidos para que pueda entrar ya.
+        failed_attempts: 0,
+        locked_until: null,
+      })
+      .eq("id", profileId);
+    if (error) return { error: "No se pudo resetear el PIN. Inténtalo de nuevo." };
+
+    return { ok: true, tempPin, playerName: prof.display_name };
+  } catch {
+    return { error: "Error inesperado al resetear el PIN." };
   }
 }

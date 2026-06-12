@@ -13,6 +13,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ShareCode } from "@/components/groups/ShareCode";
 import { removeMember, transferOwnership, setManager, deleteGroup } from "@/app/(app)/grupo/[id]/actions";
+import { resetMemberPin } from "@/app/(app)/grupo/[id]/admin-actions";
 import { leaveGroup } from "@/app/(app)/grupos/actions";
 import type { StandingRow } from "@/lib/standings/fetch";
 
@@ -36,6 +37,7 @@ interface Props {
 type Confirm =
   | { kind: "remove"; row: StandingRow }
   | { kind: "transfer"; row: StandingRow }
+  | { kind: "resetpin"; row: StandingRow }
   | { kind: "leave" }
   | null;
 
@@ -63,12 +65,25 @@ export function ManageTab({
 
   const [confirm, setConfirm] = useState<Confirm>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pinResult, setPinResult] = useState<{ name: string; pin: string } | null>(null);
   const [busy, startBusy] = useTransition();
 
   function runConfirm() {
     if (!confirm) return;
     setError(null);
     startBusy(async () => {
+      // Reset de PIN: devuelve un PIN temporal que se muestra al admin.
+      if (confirm.kind === "resetpin") {
+        const r = await resetMemberPin(confirm.row.profileId);
+        if (r.error) {
+          setError(r.error);
+          return;
+        }
+        setConfirm(null);
+        setPinResult({ name: r.playerName ?? confirm.row.displayName, pin: r.tempPin ?? "" });
+        return;
+      }
+
       let res: { error?: string } | undefined;
       if (confirm.kind === "remove") res = await removeMember(groupId, confirm.row.profileId);
       else if (confirm.kind === "transfer") res = await transferOwnership(groupId, confirm.row.profileId);
@@ -140,6 +155,27 @@ export function ManageTab({
                       )}
                     </span>
                   </div>
+
+                  {/* Reset de PIN: SOLO el admin global, sobre cualquiera menos
+                      sobre sí mismo (incluido el dueño, por si lo olvida). */}
+                  {isAppAdmin && !isYou && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setError(null);
+                        setConfirm({ kind: "resetpin", row });
+                      }}
+                      aria-label={`Resetear el PIN de ${row.displayName}`}
+                      title="Resetear PIN (admin)"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-muted transition hover:border-accent/60 hover:text-accent disabled:opacity-50"
+                    >
+                      <svg viewBox="0 0 24 24" width="17" height="17" className="qb-stroke" aria-hidden>
+                        <circle cx="8" cy="15" r="4" />
+                        <path d="M10.85 12.15 19 4M16 7l3 3M14 9l2 2" />
+                      </svg>
+                    </button>
+                  )}
 
                   {/* Acciones: nunca sobre el dueño ni sobre ti mismo. */}
                   {!rowIsOwner && !isYou && (
@@ -232,14 +268,24 @@ export function ManageTab({
           title={
             confirm.kind === "remove"
               ? `¿Expulsar a ${confirm.row.displayName}?`
-              : `¿Hacer líder a ${confirm.row.displayName}?`
+              : confirm.kind === "transfer"
+                ? `¿Hacer líder a ${confirm.row.displayName}?`
+                : `¿Resetear el PIN de ${confirm.row.displayName}?`
           }
           message={
             confirm.kind === "remove"
               ? "Se borrarán sus pronósticos y puntos de esta quiniela. No se puede deshacer."
-              : "Pasará a ser el organizador y tú dejarás de serlo. Solo el nuevo líder podrá nombrar co-organizadores, transferir o eliminar."
+              : confirm.kind === "transfer"
+                ? "Pasará a ser el organizador y tú dejarás de serlo. Solo el nuevo líder podrá nombrar co-organizadores, transferir o eliminar."
+                : "Se generará un PIN temporal. Su PIN actual dejará de funcionar y, al entrar con el temporal, deberá elegir uno nuevo."
           }
-          confirmLabel={confirm.kind === "remove" ? "Expulsar" : "Transferir"}
+          confirmLabel={
+            confirm.kind === "remove"
+              ? "Expulsar"
+              : confirm.kind === "transfer"
+                ? "Transferir"
+                : "Resetear PIN"
+          }
           danger={confirm.kind === "remove"}
           busy={busy}
           error={error}
@@ -248,6 +294,14 @@ export function ManageTab({
             setError(null);
           }}
           onConfirm={runConfirm}
+        />
+      )}
+
+      {pinResult && (
+        <PinResultDialog
+          name={pinResult.name}
+          pin={pinResult.pin}
+          onClose={() => setPinResult(null)}
         />
       )}
 
@@ -344,6 +398,49 @@ function DeleteGroupCard({ groupId, groupName }: { groupId: string; groupName: s
         </div>
       )}
     </section>
+  );
+}
+
+/** Muestra (una sola vez) el PIN temporal generado para que el admin lo dé. */
+function PinResultDialog({
+  name,
+  pin,
+  onClose,
+}: {
+  name: string;
+  pin: string;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 safe-px [--pad-x:1rem] sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 text-center shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-lg font-extrabold text-fg">PIN temporal de {name}</h3>
+        <p className="mt-1 text-sm text-muted">
+          Dale este PIN. Al entrar tendrá que elegir uno nuevo. Su PIN anterior ya no vale.
+        </p>
+        <div className="my-4 rounded-2xl border border-accent/40 bg-accent/10 py-4">
+          <span className="font-display text-4xl font-extrabold tracking-[0.5em] text-accent">
+            {pin}
+          </span>
+        </div>
+        <p className="mb-4 text-[11.5px] font-bold uppercase tracking-wide text-muted">
+          Este código no se vuelve a mostrar
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full rounded-xl bg-primary px-4 py-2.5 font-bold text-primary-ink transition hover:bg-primary-strong"
+        >
+          Entendido
+        </button>
+      </div>
+    </div>
   );
 }
 
