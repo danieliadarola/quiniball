@@ -103,3 +103,15 @@ Los tags antiguos **`v1.0`–`v1.6` son historial de desarrollo PRE-lanzamiento*
   componente cliente). `versionName` de Android pasa a `1.0.1`. *(Web/lógica +
   build.gradle; el cambio web va por Vercel, el `versionName` aplica al próximo
   AAB, que subirá `versionCode` a 2.)*
+- **v1.1.0** — Ranking y avatares (funcionalidad nueva):
+  - **Ranking renovado**: podio Top 3 (oro/plata/bronce), buscador de
+    participantes, botón "Ir a mi posición" y filas con avatar + puntos +
+    desglose "exactos · aciertos 1X2"; resalta tu fila.
+  - **Avatares de perfil** (migración **0016** `profiles.avatar_style/seed`):
+    cada jugador elige un avatar generado con DiceBear (MIT) desde "Tu perfil";
+    el SVG se genera en el servidor (ruta cacheada `/api/avatar`), sin fotos ni
+    almacenamiento. Set de estilos con tono gracioso/meme. Se ve en ranking,
+    cabecera y Gestionar. Respaldo: inicial sobre círculo de color.
+  - **Aviso "Novedades"**: pop-up minimalista al entrar, una vez por dispositivo
+    (localStorage); reaparece al subir `WHATS_NEW.version`.
+  `versionName` de Android pasa a `1.1.0`. *(Web/lógica + migración; por Vercel.)*
