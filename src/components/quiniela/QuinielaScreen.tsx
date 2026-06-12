@@ -48,6 +48,7 @@ export function QuinielaScreen({
   managerIds,
   history,
   isAppAdmin,
+  isMember,
 }: {
   groupId: string;
   name: string;
@@ -64,6 +65,7 @@ export function QuinielaScreen({
   managerIds: string[];
   history: HistoryItem[];
   isAppAdmin: boolean;
+  isMember: boolean;
 }) {
   const [tab, setTab] = useState<"partidos" | "ranking" | "historial" | "gestionar">("partidos");
   const initialJ = useMemo(() => {
@@ -243,6 +245,8 @@ export function QuinielaScreen({
             canManage={canManage}
             managerIds={managerIds}
             members={standings}
+            isMember={isMember}
+            isAppAdmin={isAppAdmin}
             onChanged={() => router.refresh()}
           />
         </div>

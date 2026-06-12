@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getSession, getSupabaseForCurrentUser } from "@/lib/auth/session";
 import { isCurrentUserAdmin } from "@/lib/admin/auth";
+import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { fetchStandings } from "@/lib/standings/fetch";
 import { fetchHistory } from "@/lib/history/fetch";
 import { getTeam } from "@/data/tournament/teams";
@@ -61,41 +62,63 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   const sb = await getSupabaseForCurrentUser();
   if (!sb || !session) notFound();
 
-  const { data: group } = (await sb
+  const isAppAdmin = await isCurrentUserAdmin();
+
+  // Leer el grupo como miembro (la RLS solo lo devuelve si perteneces).
+  let { data: group } = (await sb
     .from("groups")
     .select("id, name, owner_id, join_code")
     .eq("id", id)
     .maybeSingle()) as { data: GroupRow | null };
+  const isMember = group !== null;
+
+  // Fallback de ADMIN GLOBAL: si no eres miembro pero eres admin de la app, se
+  // lee con service_role para poder entrar y gestionar/editar cualquier
+  // quiniela. El resto de lecturas de esta página usarán ese mismo cliente.
+  let admin: ReturnType<typeof createSupabaseAdmin> | null = null;
+  if (!group && isAppAdmin) {
+    admin = createSupabaseAdmin();
+    ({ data: group } = (await admin
+      .from("groups")
+      .select("id, name, owner_id, join_code")
+      .eq("id", id)
+      .maybeSingle()) as { data: GroupRow | null });
+  }
   if (!group) notFound();
+
+  // Cliente de datos: en modo admin-ajeno usa service_role (omite RLS); en el
+  // flujo normal de miembro, el cliente del usuario (RLS) como siempre.
+  const db = admin ?? sb;
 
   const [{ data: mdRows }, { data: matchRows }, { data: predRows }, { data: featRows }, { data: memberRows }, standings] =
     await Promise.all([
-      sb.from("matchdays").select("id, code, name").order("id") as unknown as Promise<{ data: MatchdayRow[] | null }>,
-      sb
+      db.from("matchdays").select("id, code, name").order("id") as unknown as Promise<{ data: MatchdayRow[] | null }>,
+      db
         .from("matches")
         .select(
           "match_number, matchday_id, phase, group_letter, kickoff_at, home_team_id, away_team_id, home_placeholder, away_placeholder, home_goals, away_goals",
         )
         .order("match_number") as unknown as Promise<{ data: MatchRow[] | null }>,
-      sb
+      db
         .from("predictions")
         .select("match_number, pred_home_goals, pred_away_goals, pred_outcome")
         .eq("group_id", id)
         // SOLO los pronósticos del jugador que mira: la RLS deja leer los de
         // todo el grupo (para el ranking), así que aquí hay que acotar por
         // usuario o se pintaría el pronóstico de otro miembro en cada tarjeta.
+        // (En modo admin-ajeno el admin no tiene picks aquí: lista vacía.)
         .eq("profile_id", session.sub) as unknown as Promise<{ data: PredRow[] | null }>,
       // Partidos estrella propios de ESTA quiniela (destacado por grupo).
-      sb
+      db
         .from("group_featured_matches")
         .select("match_number")
         .eq("group_id", id) as unknown as Promise<{ data: { match_number: number }[] | null }>,
       // Co-organizadores de la quiniela (para mostrar y gestionar roles).
-      sb
+      db
         .from("group_members")
         .select("profile_id, is_manager")
         .eq("group_id", id) as unknown as Promise<{ data: { profile_id: string; is_manager: boolean }[] | null }>,
-      fetchStandings(sb, id),
+      fetchStandings(db, id),
     ]);
 
   // Historial (puntos + eventos). Usa admin internamente; la pertenencia ya
@@ -171,10 +194,6 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   const me = standings.find((r) => r.profileId === session.sub);
   const origin = await getOrigin();
 
-  // Admin global de la app (fundador): habilita la herramienta de edición de
-  // pronósticos ajenos. Se calcula una sola vez y sirve también para `canManage`.
-  const isAppAdmin = await isCurrentUserAdmin();
-
   // Puede gestionar (expulsar/transferir/eliminar) el dueño o el admin global.
   const canManage = group.owner_id === session.sub ? true : isAppAdmin;
 
@@ -195,6 +214,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       managerIds={managerIds}
       history={history}
       isAppAdmin={isAppAdmin}
+      isMember={isMember}
     />
   );
 }

@@ -9,6 +9,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSupabaseForCurrentUser } from "@/lib/auth/session";
+import { isCurrentUserAdmin } from "@/lib/admin/auth";
+import { createSupabaseAdmin } from "@/lib/supabase/server";
 
 export interface ManageState {
   error?: string;
@@ -107,11 +109,21 @@ export async function deleteGroup(
   const sb = await getSupabaseForCurrentUser();
   if (!sb) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
 
-  const { data: group } = (await sb
+  let { data: group } = (await sb
     .from("groups")
     .select("name")
     .eq("id", groupId)
     .maybeSingle()) as { data: { name: string } | null };
+  // Si no eres miembro, la RLS no devuelve el grupo; el admin global lo lee con
+  // service_role para poder confirmar/borrar cualquier quiniela (la RPC
+  // delete_group revalida los permisos de todas formas).
+  if (!group && (await isCurrentUserAdmin())) {
+    ({ data: group } = (await createSupabaseAdmin()
+      .from("groups")
+      .select("name")
+      .eq("id", groupId)
+      .maybeSingle()) as { data: { name: string } | null });
+  }
   if (!group) return { error: "La quiniela ya no existe." };
   if (confirmName.trim() !== group.name) {
     return { error: "El nombre no coincide. Escríbelo tal cual para confirmar." };

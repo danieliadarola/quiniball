@@ -26,6 +26,10 @@ interface Props {
   canManage: boolean;
   managerIds: string[];
   members: StandingRow[];
+  /** ¿El usuario actual es miembro de esta quiniela? (false en modo admin-ajeno). */
+  isMember: boolean;
+  /** ¿Es admin global de la app? Habilita acciones estructurales sin ser dueño. */
+  isAppAdmin: boolean;
   onChanged: () => void | Promise<void>;
 }
 
@@ -45,10 +49,16 @@ export function ManageTab({
   canManage,
   managerIds,
   members,
+  isMember,
+  isAppAdmin,
   onChanged,
 }: Props) {
   const router = useRouter();
   const isOwner = currentProfileId === ownerId;
+  // Acciones estructurales (co-organizador, transferir, eliminar): el dueño real
+  // o el admin global. El admin global puede gestionar cualquier quiniela aunque
+  // no sea miembro (las RPC ya lo autorizan vía is_app_admin).
+  const canStructural = isOwner || isAppAdmin;
   const managerSet = new Set(managerIds);
 
   const [confirm, setConfirm] = useState<Confirm>(null);
@@ -134,7 +144,7 @@ export function ManageTab({
                   {/* Acciones: nunca sobre el dueño ni sobre ti mismo. */}
                   {!rowIsOwner && !isYou && (
                     <div className="flex shrink-0 items-center gap-1.5">
-                      {isOwner && (
+                      {canStructural && (
                         <button
                           type="button"
                           disabled={busy}
@@ -149,7 +159,7 @@ export function ManageTab({
                           {rowIsManager ? "Co-org ✓" : "Co-org"}
                         </button>
                       )}
-                      {isOwner && (
+                      {canStructural && (
                         <button
                           type="button"
                           disabled={busy}
@@ -188,8 +198,9 @@ export function ManageTab({
         </section>
       )}
 
-      {/* Salir (miembros y co-organizadores; el dueño no puede) */}
-      {!isOwner && (
+      {/* Salir (miembros y co-organizadores; el dueño no puede). El admin que
+          entra en una quiniela ajena no es miembro: no tiene nada de lo que salir. */}
+      {isMember && !isOwner && (
         <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5">
           <div>
             <h3 className="font-display text-base font-extrabold uppercase tracking-wide text-fg">
@@ -213,8 +224,8 @@ export function ManageTab({
         </section>
       )}
 
-      {/* Eliminar (solo el dueño) */}
-      {isOwner && <DeleteGroupCard groupId={groupId} groupName={groupName} />}
+      {/* Eliminar (el dueño o el admin global, también en quinielas ajenas) */}
+      {canStructural && <DeleteGroupCard groupId={groupId} groupName={groupName} />}
 
       {confirm && confirm.kind !== "leave" && (
         <ConfirmDialog
