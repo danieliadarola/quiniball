@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession, getSupabaseForCurrentUser } from "@/lib/auth/session";
 import { ProfileNameForm } from "./ProfileNameForm";
+import { AvatarPicker } from "./AvatarPicker";
 
 /**
  * Pantalla de perfil del jugador: por ahora, cambiar el nombre de usuario.
@@ -12,14 +13,20 @@ export default async function PerfilPage() {
   if (!session) redirect("/entrar");
 
   let email: string | null = null;
+  let avatarStyle: string | null = null;
+  let avatarSeed: string | null = null;
   const sb = await getSupabaseForCurrentUser();
   if (sb) {
     const { data } = (await sb
       .from("profiles")
-      .select("email")
+      .select("email, avatar_style, avatar_seed")
       .eq("id", session.sub)
-      .maybeSingle()) as { data: { email: string } | null };
+      .maybeSingle()) as {
+      data: { email: string; avatar_style: string | null; avatar_seed: string | null } | null;
+    };
     email = data?.email ?? null;
+    avatarStyle = data?.avatar_style ?? null;
+    avatarSeed = data?.avatar_seed ?? null;
   }
 
   return (
@@ -32,6 +39,14 @@ export default async function PerfilPage() {
           Tu perfil
         </h1>
       </div>
+
+      <section className="rounded-2xl border border-line bg-surface p-5">
+        <AvatarPicker
+          currentStyle={avatarStyle}
+          currentSeed={avatarSeed}
+          name={session.display_name ?? ""}
+        />
+      </section>
 
       <section className="rounded-2xl border border-line bg-surface p-5">
         <ProfileNameForm current={session.display_name ?? ""} />

@@ -12,6 +12,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ShareCode } from "@/components/groups/ShareCode";
+import { Avatar } from "@/components/ui/Avatar";
 import { removeMember, transferOwnership, setManager, deleteGroup } from "@/app/(app)/grupo/[id]/actions";
 import { resetMemberPin } from "@/app/(app)/grupo/[id]/admin-actions";
 import { leaveGroup } from "@/app/(app)/grupos/actions";
@@ -140,6 +141,13 @@ export function ManageTab({
                   key={row.profileId}
                   className="flex items-center gap-3 rounded-xl border border-line bg-surface2 px-3.5 py-3"
                 >
+                  <Avatar
+                    id={row.profileId}
+                    name={row.displayName}
+                    size={36}
+                    avatarStyle={row.avatarStyle}
+                    avatarSeed={row.avatarSeed}
+                  />
                   <div className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-bold text-fg">
                       {row.displayName}

@@ -14,6 +14,8 @@ export interface StandingRow {
   exactHits: number;
   outcomeHits: number;
   rank: number;
+  avatarStyle: string | null;
+  avatarSeed: string | null;
 }
 
 interface StandingDbRow {
@@ -23,6 +25,8 @@ interface StandingDbRow {
   exact_hits: number;
   outcome_hits: number;
   rank: number;
+  avatar_style: string | null;
+  avatar_seed: string | null;
 }
 
 /** Devuelve la clasificación de una quiniela, ordenada por posición. */
@@ -32,7 +36,7 @@ export async function fetchStandings(
 ): Promise<StandingRow[]> {
   const { data, error } = await sb
     .from("standings")
-    .select("profile_id, display_name, total_points, exact_hits, outcome_hits, rank")
+    .select("profile_id, display_name, total_points, exact_hits, outcome_hits, rank, avatar_style, avatar_seed")
     .eq("group_id", groupId)
     .order("rank", { ascending: true });
 
@@ -45,5 +49,7 @@ export async function fetchStandings(
     exactHits: r.exact_hits,
     outcomeHits: r.outcome_hits,
     rank: r.rank,
+    avatarStyle: r.avatar_style,
+    avatarSeed: r.avatar_seed,
   }));
 }

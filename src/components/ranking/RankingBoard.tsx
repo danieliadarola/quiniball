@@ -76,6 +76,8 @@ export function RankingBoard({
                   name={row.displayName}
                   size={place === 1 ? 70 : 56}
                   ringClass={`ring-2 ${meta.ring} ring-offset-2 ring-offset-surface`}
+                  avatarStyle={row.avatarStyle}
+                  avatarSeed={row.avatarSeed}
                 />
                 <div className="w-full px-0.5 text-center">
                   <span className="block truncate text-[12.5px] font-bold leading-tight">
@@ -157,7 +159,13 @@ export function RankingBoard({
                     >
                       {row.rank}
                     </span>
-                    <Avatar id={row.profileId} name={row.displayName} size={38} />
+                    <Avatar
+                      id={row.profileId}
+                      name={row.displayName}
+                      size={38}
+                      avatarStyle={row.avatarStyle}
+                      avatarSeed={row.avatarSeed}
+                    />
                     <div className="min-w-0 flex-1">
                       <span className="block truncate text-[14.5px] font-bold">
                         {row.displayName}

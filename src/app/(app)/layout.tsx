@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
-import { isCurrentUserAdmin } from "@/lib/admin/auth";
+import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { logout } from "@/app/(auth)/actions";
 import { Logo } from "@/components/ui/Logo";
+import { Avatar } from "@/components/ui/Avatar";
 import { SiteFooter } from "@/components/ui/SiteFooter";
 
 /**
@@ -18,7 +19,16 @@ export default async function AppLayout({
   // Entró con un PIN temporal: no puede usar la app hasta elegir uno nuevo.
   if (session.mrp) redirect("/cambiar-pin");
 
-  const isAdmin = await isCurrentUserAdmin();
+  // Una sola consulta para el flag de admin y el avatar de la cabecera.
+  const admin = createSupabaseAdmin();
+  const { data: profile } = (await admin
+    .from("profiles")
+    .select("is_admin, avatar_style, avatar_seed")
+    .eq("id", session.sub)
+    .maybeSingle()) as {
+    data: { is_admin: boolean; avatar_style: string | null; avatar_seed: string | null } | null;
+  };
+  const isAdmin = Boolean(profile?.is_admin);
 
   return (
     <div className="min-h-dvh">
@@ -38,12 +48,15 @@ export default async function AppLayout({
             )}
             <Link
               href="/perfil"
-              className="flex items-center gap-1.5 rounded-lg border border-line2 bg-surface2 px-3 py-1.5 font-semibold text-fg transition hover:border-primary/60"
+              className="flex items-center gap-1.5 rounded-lg border border-line2 bg-surface2 py-1 pl-1 pr-3 font-semibold text-fg transition hover:border-primary/60"
             >
-              <svg viewBox="0 0 24 24" width="16" height="16" className="qb-stroke" aria-hidden>
-                <circle cx="12" cy="8" r="3.2" />
-                <path d="M5.5 19a6.5 6.5 0 0 1 13 0" />
-              </svg>
+              <Avatar
+                id={session.sub}
+                name={session.display_name ?? ""}
+                size={26}
+                avatarStyle={profile?.avatar_style}
+                avatarSeed={profile?.avatar_seed}
+              />
               <span className="hidden max-w-[10rem] truncate sm:inline">{session.display_name}</span>
             </Link>
             <form action={logout}>

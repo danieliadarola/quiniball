@@ -13,6 +13,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { getSession, startSession } from "@/lib/auth/session";
+import { isValidAvatarStyle, isValidAvatarSeed } from "@/lib/avatar/styles";
 
 export interface ProfileState {
   error?: string;
@@ -82,5 +83,38 @@ export async function updateDisplayName(
     return { ok: true };
   } catch {
     return { error: "Error inesperado al actualizar el nombre." };
+  }
+}
+
+/**
+ * Guarda el avatar del jugador (estilo + semilla de DiceBear) o lo quita
+ * (ambos null → vuelve a la inicial). El avatar es global del perfil: se ve
+ * igual en todas sus quinielas.
+ */
+export async function updateAvatar(
+  style: string | null,
+  seed: string | null,
+): Promise<ProfileState> {
+  const session = await getSession();
+  if (!session) return { error: "Tu sesión ha caducado. Vuelve a entrar." };
+
+  const clearing = style === null && seed === null;
+  if (!clearing && (!isValidAvatarStyle(style) || !isValidAvatarSeed(seed))) {
+    return { error: "Avatar no válido." };
+  }
+
+  try {
+    const admin = createSupabaseAdmin();
+    const { error } = await admin
+      .from("profiles")
+      .update({ avatar_style: clearing ? null : style, avatar_seed: clearing ? null : seed })
+      .eq("id", session.sub);
+    if (error) return { error: "No se pudo guardar el avatar. Inténtalo de nuevo." };
+
+    revalidatePath("/perfil");
+    revalidatePath("/grupos");
+    return { ok: true };
+  } catch {
+    return { error: "Error inesperado al guardar el avatar." };
   }
 }
