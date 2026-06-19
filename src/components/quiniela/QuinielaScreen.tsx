@@ -302,7 +302,7 @@ export function QuinielaScreen({
 const TAB_LABEL: Record<Tab, string> = {
   partidos: "Partidos",
   ranking: "Ranking",
-  historial: "Historial",
+  historial: "Resultados",
   cuadro: "Cuadro",
   gestionar: "Gestionar",
 };
@@ -312,7 +312,7 @@ function BottomNav({ tab, onChange }: { tab: Tab; onChange: (t: Tab) => void }) 
   const items: { key: Tab; label: string; icon: React.ReactNode }[] = [
     { key: "partidos", label: "Partidos", icon: <BallIcon /> },
     { key: "ranking", label: "Ranking", icon: <TrophyIcon /> },
-    { key: "historial", label: "Historial", icon: <HistoryIcon /> },
+    { key: "historial", label: "Resultados", icon: <HistoryIcon /> },
     { key: "cuadro", label: "Cuadro", icon: <TableIcon /> },
   ];
   return (
