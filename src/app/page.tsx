@@ -1,13 +1,23 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { TOURNAMENT } from "@/config/defaults";
 import { VENUES } from "@/data/tournament/venues";
 import { LogoBadge } from "@/components/ui/Logo";
+import { getSession } from "@/lib/auth/session";
 
 /**
  * Landing pública QuiniBall: hero oscuro con halo, titular de impacto y datos
  * reales del torneo. Mobile-first.
+ *
+ * Si ya hay sesión, NO mostramos la landing: la app (y el navegador) abren en
+ * "/", así que un usuario logueado iría directo a sus quinielas en vez de ver
+ * "Crear mi perfil / Ya tengo cuenta" y creer que le han deslogueado.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  if (session) redirect("/grupos");
+
+
   const stats = [
     { label: "Selecciones", value: TOURNAMENT.teams },
     { label: "Partidos", value: TOURNAMENT.matches },

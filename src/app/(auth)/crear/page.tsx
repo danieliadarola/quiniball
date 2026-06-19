@@ -1,8 +1,14 @@
+import { redirect } from "next/navigation";
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { getSession } from "@/lib/auth/session";
 
 export const metadata = { title: "Crear perfil" };
 
-export default function CrearPage() {
+export default async function CrearPage() {
+  // Si ya hay sesión, vamos directos a las quinielas en vez de "crear perfil".
+  const session = await getSession();
+  if (session) redirect("/grupos");
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">

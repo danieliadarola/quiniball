@@ -1,8 +1,14 @@
+import { redirect } from "next/navigation";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { getSession } from "@/lib/auth/session";
 
 export const metadata = { title: "Entrar" };
 
-export default function EntrarPage() {
+export default async function EntrarPage() {
+  // Si ya hay sesión, no mostramos el formulario (la app abre en "/").
+  const session = await getSession();
+  if (session) redirect("/grupos");
+
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
