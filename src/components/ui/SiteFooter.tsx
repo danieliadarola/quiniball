@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { APP_NAME } from "@/config/defaults";
+import { APP_NAME, APP_VERSION } from "@/config/defaults";
 
 /**
  * Pie de página común de la app: enlace a la política de privacidad (requisito
@@ -21,6 +21,10 @@ export function SiteFooter() {
           ·
         </span>
         © {year} {APP_NAME}. Todos los derechos reservados.
+        <span className="mx-2 text-line2" aria-hidden>
+          ·
+        </span>
+        v{APP_VERSION}
       </p>
     </footer>
   );

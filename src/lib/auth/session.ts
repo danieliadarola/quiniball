@@ -13,10 +13,10 @@ import {
   type SessionClaims,
 } from "./jwt";
 import { createSupabaseForUser } from "@/lib/supabase/server";
+import { SESSION_COOKIE, sessionCookieOptions } from "./cookie";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-const COOKIE_NAME = "mq_session";
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 días
+const COOKIE_NAME = SESSION_COOKIE;
 
 /** Crea la sesión: firma el token y lo guarda en la cookie. */
 export async function startSession(
@@ -26,13 +26,7 @@ export async function startSession(
 ): Promise<void> {
   const token = await mintAccessToken(profileId, displayName, mustResetPin);
   const jar = await cookies();
-  jar.set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE_SECONDS,
-  });
+  jar.set(COOKIE_NAME, token, sessionCookieOptions());
 }
 
 /** Cierra la sesión. */

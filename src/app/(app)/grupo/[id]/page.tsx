@@ -5,6 +5,7 @@ import { isCurrentUserAdmin } from "@/lib/admin/auth";
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { fetchStandings } from "@/lib/standings/fetch";
 import { fetchMatchPicks } from "@/lib/history/picks";
+import { computeGroupStandings } from "@/lib/tournament/groupTable";
 import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff, formatDay } from "@/lib/matches/format";
 import { isPredictionLocked, PREDICTION_LOCK_LEAD_MS } from "@/lib/matches/schedule";
@@ -130,6 +131,9 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   // mismo cliente `db` (RLS de miembro o service_role en modo admin-ajeno).
   const matchPicks = await fetchMatchPicks(db, id, standings, now);
 
+  // Cuadro: clasificación real de los 12 grupos a partir de los resultados.
+  const groupStandings = computeGroupStandings(matches);
+
   const predByMatch = new Map<number, PredVM>(
     (predRows ?? []).map((p) => [
       p.match_number,
@@ -213,6 +217,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       canManage={canManage}
       managerIds={managerIds}
       matchPicks={matchPicks}
+      groupStandings={groupStandings}
       isAppAdmin={isAppAdmin}
       isMember={isMember}
     />

@@ -11,23 +11,23 @@ import { useEffect, useState } from "react";
 const STORAGE_KEY = "qb_whatsnew";
 
 const WHATS_NEW = {
-  // Cambia esta fecha/clave cuando haya novedades que anunciar.
-  version: "2026-06-12b",
+  // Cambia esta clave cuando haya novedades que anunciar (sale una vez por móvil).
+  version: "v1.1.0",
   items: [
     {
-      icon: "🔎",
-      title: "Historial con los pronósticos",
-      text: "En cada partido empezado puedes ver qué pronosticó cada jugador y los puntos que sacó.",
+      icon: "📊",
+      title: "Nuevo apartado «Cuadro»",
+      text: "Consulta la clasificación real del Mundial: tabla de cada grupo con partidos, goles y puntos.",
     },
     {
-      icon: "🏆",
-      title: "Ranking renovado",
-      text: "Podio con el Top 3, buscador de participantes y botón para ir a tu posición.",
+      icon: "📱",
+      title: "Menú inferior en el móvil",
+      text: "Navega más rápido con la barra de abajo. La configuración de la quiniela está ahora en la tuerca de arriba.",
     },
     {
-      icon: "😎",
-      title: "Avatares",
-      text: "Ponte tu propio avatar desde «Tu perfil». Elige el estilo que más te pegue.",
+      icon: "🔐",
+      title: "Sin reloguear a cada rato",
+      text: "Tu dispositivo recuerda la sesión: ya no tienes que iniciar sesión continuamente.",
     },
   ],
 };

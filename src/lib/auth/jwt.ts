@@ -10,7 +10,10 @@
  */
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
-const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 días
+// 400 días: sesión de larga duración (app de temporada). La cookie se "desliza"
+// en cada visita (ver middleware), así que en la práctica no expira mientras se
+// use el dispositivo. Antes eran 30 días y los usuarios se quejaban de reloguear.
+const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 400;
 
 function secretKey(): Uint8Array {
   const secret = process.env.SUPABASE_JWT_SECRET;
