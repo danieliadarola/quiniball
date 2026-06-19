@@ -2,14 +2,38 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { MatchCard, type MatchVM, type PredVM } from "@/components/predictions/MatchCard";
-import { RankingLive } from "@/components/ranking/RankingLive";
-import { ManageTab } from "@/components/quiniela/ManageTab";
-import { HistoryTab } from "@/components/quiniela/HistoryTab";
-import { CuadroTab } from "@/components/quiniela/CuadroTab";
-import { AdminEditPanel } from "@/components/quiniela/AdminEditPanel";
 import { renameGroup } from "@/app/(app)/grupos/actions";
+
+// Cada pestaña se carga SOLO al abrirse (lazy). Así la pantalla inicial
+// ("Partidos") no arrastra el JS del resto (el Ranking en vivo trae el cliente
+// de Supabase Realtime, etc.), que es lo que hacía pesada la primera carga.
+const TabSpinner = () => (
+  <div className="flex justify-center py-16">
+    <div className="h-6 w-6 animate-spin rounded-full border-2 border-line border-t-primary" />
+  </div>
+);
+const RankingLive = dynamic(
+  () => import("@/components/ranking/RankingLive").then((m) => m.RankingLive),
+  { loading: TabSpinner },
+);
+const HistoryTab = dynamic(
+  () => import("@/components/quiniela/HistoryTab").then((m) => m.HistoryTab),
+  { loading: TabSpinner },
+);
+const CuadroTab = dynamic(
+  () => import("@/components/quiniela/CuadroTab").then((m) => m.CuadroTab),
+  { loading: TabSpinner },
+);
+const ManageTab = dynamic(
+  () => import("@/components/quiniela/ManageTab").then((m) => m.ManageTab),
+  { loading: TabSpinner },
+);
+const AdminEditPanel = dynamic(() =>
+  import("@/components/quiniela/AdminEditPanel").then((m) => m.AdminEditPanel),
+);
 import type { StandingRow } from "@/lib/standings/fetch";
 import type { MatchPicks } from "@/lib/history/picks";
 import type { GroupStandings } from "@/lib/tournament/groupTable";

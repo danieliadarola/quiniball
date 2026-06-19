@@ -12,8 +12,17 @@ import { SESSION_COOKIE, sessionCookieOptions } from "@/lib/auth/cookie";
  * ventana de la cookie. Es barato y se ejecuta en el edge.
  */
 export function middleware(req: NextRequest) {
-  const res = NextResponse.next();
   const token = req.cookies.get(SESSION_COOKIE)?.value;
+
+  // Arranque en frío: la app abre en "/". Si hay sesión, saltamos directos a las
+  // quinielas SIN renderizar antes la landing pública (más rápido). Si la cookie
+  // estuviera caducada, el layout de (app) reenvía a /entrar.
+  const res =
+    token && req.nextUrl.pathname === "/"
+      ? NextResponse.redirect(new URL("/grupos", req.url))
+      : NextResponse.next();
+
+  // Sesión deslizante: renueva la caducidad de la cookie en cada navegación.
   if (token) {
     res.cookies.set({ name: SESSION_COOKIE, value: token, ...sessionCookieOptions() });
   }
