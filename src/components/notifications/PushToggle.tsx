@@ -24,9 +24,44 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
 
 type State = "loading" | "unsupported" | "off" | "on" | "denied" | "working";
 
+type PrefKey = "close" | "result" | "phase" | "rank";
+type Prefs = Record<PrefKey, boolean>;
+const PREF_LABELS: { key: PrefKey; label: string; desc: string }[] = [
+  { key: "close", label: "Cierre de jornada", desc: "Aviso unas horas antes, si te faltan pronósticos" },
+  { key: "result", label: "Resultado y puntos", desc: "Cuando se cierra un partido tuyo" },
+  { key: "phase", label: "Inicio de fase", desc: "Cuando empiezan octavos, cuartos…" },
+  { key: "rank", label: "Cambios en el ranking", desc: "Cuando alguien te adelanta" },
+];
+
 export function PushToggle() {
   const [state, setState] = useState<State>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
+
+  async function loadPrefs() {
+    try {
+      const res = await fetch("/api/push/prefs");
+      const json = (await res.json()) as { ok: boolean; prefs?: Prefs };
+      if (json.ok && json.prefs) setPrefs(json.prefs);
+    } catch {
+      /* si falla, no mostramos los interruptores por tipo */
+    }
+  }
+
+  async function setPref(key: PrefKey, value: boolean) {
+    if (!prefs) return;
+    const next = { ...prefs, [key]: value };
+    setPrefs(next); // optimista
+    try {
+      await fetch("/api/push/prefs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+    } catch {
+      setPrefs(prefs); // revertir si falla
+    }
+  }
 
   const supported =
     typeof window !== "undefined" &&
@@ -46,7 +81,10 @@ export function PushToggle() {
     navigator.serviceWorker
       .register("/sw.js")
       .then((reg) => reg.pushManager.getSubscription())
-      .then((sub) => setState(sub ? "on" : "off"))
+      .then((sub) => {
+        setState(sub ? "on" : "off");
+        if (sub) loadPrefs();
+      })
       .catch(() => setState("off"));
   }, [supported]);
 
@@ -72,6 +110,7 @@ export function PushToggle() {
       });
       if (!res.ok) throw new Error("No se pudo guardar la suscripción.");
       setState("on");
+      loadPrefs();
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudieron activar las notificaciones.");
       setState("off");
@@ -109,6 +148,20 @@ export function PushToggle() {
         </div>
         <Switch state={state} onEnable={enable} onDisable={disable} />
       </div>
+
+      {state === "on" && prefs && (
+        <ul className="flex flex-col divide-y divide-line rounded-xl border border-line bg-surface2">
+          {PREF_LABELS.map(({ key, label, desc }) => (
+            <li key={key} className="flex items-center gap-3 px-3.5 py-2.5">
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-bold text-fg">{label}</p>
+                <p className="truncate text-[11px] text-muted">{desc}</p>
+              </div>
+              <MiniSwitch on={prefs[key]} onChange={(v) => setPref(key, v)} />
+            </li>
+          ))}
+        </ul>
+      )}
 
       {state === "unsupported" && (
         <p className="rounded-xl border border-line bg-surface2 px-3 py-2 text-[12px] text-muted">
@@ -153,6 +206,26 @@ function Switch({
       <span
         className={`absolute top-1/2 h-5 w-5 -translate-y-1/2 rounded-full bg-white transition-all ${
           on ? "left-[26px]" : "left-1"
+        }`}
+      />
+    </button>
+  );
+}
+
+function MiniSwitch({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      onClick={() => onChange(!on)}
+      className={`relative h-6 w-11 shrink-0 rounded-full border transition ${
+        on ? "border-transparent bg-primary" : "border-line2 bg-surface3"
+      }`}
+    >
+      <span
+        className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full bg-white transition-all ${
+          on ? "left-[24px]" : "left-1"
         }`}
       />
     </button>

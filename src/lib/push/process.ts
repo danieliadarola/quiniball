@@ -84,7 +84,7 @@ export async function processNotifications(now: number = Date.now()) {
 
   const admin = createSupabaseAdmin();
 
-  const [{ data: subs }, { data: matches }, { data: members }, { data: stands }, { data: rankState }] =
+  const [{ data: subs }, { data: matches }, { data: members }, { data: stands }, { data: rankState }, { data: prefsRows }] =
     await Promise.all([
       admin.from("push_subscriptions").select("profile_id, endpoint, p256dh, auth") as unknown as Promise<{ data: SubRow[] | null }>,
       admin
@@ -93,7 +93,16 @@ export async function processNotifications(now: number = Date.now()) {
       admin.from("group_members").select("group_id, profile_id") as unknown as Promise<{ data: { group_id: string; profile_id: string }[] | null }>,
       admin.from("standings").select("group_id, profile_id, rank") as unknown as Promise<{ data: StandRow[] | null }>,
       admin.from("push_rank_state").select("group_id, profile_id, last_rank") as unknown as Promise<{ data: { group_id: string; profile_id: string; last_rank: number }[] | null }>,
+      admin.from("push_prefs").select("profile_id, close, result, phase, rank") as unknown as Promise<{ data: { profile_id: string; close: boolean; result: boolean; phase: boolean; rank: boolean }[] | null }>,
     ]);
+
+  // Preferencias por cuenta. Sin fila = todo activado (opt-out).
+  const prefs = new Map<string, { close: boolean; result: boolean; phase: boolean; rank: boolean }>();
+  for (const r of prefsRows ?? []) prefs.set(r.profile_id, r);
+  const wants = (profileId: string, type: "close" | "result" | "phase" | "rank") => {
+    const p = prefs.get(profileId);
+    return p ? p[type] : true;
+  };
 
   const subsByProfile = new Map<string, SubRow[]>();
   for (const s of subs ?? []) {
@@ -130,6 +139,7 @@ export async function processNotifications(now: number = Date.now()) {
     for (const [groupId, profileIds] of membersByGroup) {
       for (const profileId of profileIds) {
         if (!subsByProfile.has(profileId)) continue;
+        if (!wants(profileId, "close")) continue;
         const pending = ms.filter(
           (m) =>
             now < Date.parse(m.kickoff_at) - PREDICTION_LOCK_LEAD_MS &&
@@ -162,6 +172,7 @@ export async function processNotifications(now: number = Date.now()) {
     if (!label) continue; // 'group' u otros: no anunciamos
     if (!(now >= start && now - start < PHASE_WINDOW_MS)) continue;
     for (const profileId of subsByProfile.keys()) {
+      if (!wants(profileId, "phase")) continue;
       candidates.push({
         key: `phase:${phase}:${profileId}`,
         profileId,
@@ -183,6 +194,7 @@ export async function processNotifications(now: number = Date.now()) {
     const ko = Date.parse(m.kickoff_at);
     if (!(now > ko && now - ko < RESULT_WINDOW_MS)) continue; // solo recientes
     if (!subsByProfile.has(p.profile_id)) continue;
+    if (!wants(p.profile_id, "result")) continue;
     const home = m.home_team_id ? getTeam(m.home_team_id)?.name ?? "?" : "?";
     const away = m.away_team_id ? getTeam(m.away_team_id)?.name ?? "?" : "?";
     const pts = p.points_awarded ?? 0;
@@ -260,7 +272,7 @@ export async function processNotifications(now: number = Date.now()) {
     if (!subsByProfile.has(s.profile_id)) continue;
     const k = `${s.group_id}:${s.profile_id}`;
     const prev = lastRank.get(k);
-    if (prev != null && s.rank > prev) {
+    if (prev != null && s.rank > prev && wants(s.profile_id, "rank")) {
       // Ha bajado de puesto → alguien le adelantó.
       const ok = await deliver(s.profile_id, {
         title: "Te han adelantado",
