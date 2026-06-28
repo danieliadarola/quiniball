@@ -42,7 +42,7 @@ const WHATS_NEW = {
     {
       icon: "🔔",
       title: "Notificaciones",
-      text: "Actívalas en «Gestionar» para que te avisemos de los cierres de jornada, los resultados de tus partidos y los cambios en el ranking.",
+      text: "Actívalas en «Gestionar» y elige qué avisos quieres: cierres de jornada, resultados de tus partidos, inicio de fase y cambios en el ranking.",
     },
   ],
 };
