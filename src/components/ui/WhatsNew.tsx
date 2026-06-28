@@ -39,6 +39,11 @@ const WHATS_NEW = {
       title: "Compartir en WhatsApp",
       text: "Nuevo botón «Compartir» en la quiniela: manda tu posición, el ranking, el resumen de la jornada o la invitación al grupo.",
     },
+    {
+      icon: "🔔",
+      title: "Notificaciones",
+      text: "Actívalas en «Gestionar» para que te avisemos de los cierres de jornada, los resultados de tus partidos y los cambios en el ranking.",
+    },
   ],
 };
 

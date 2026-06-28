@@ -11,6 +11,7 @@
 import { NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { syncResults } from "@/lib/results/sync";
+import { processNotifications } from "@/lib/push/process";
 
 // Toca service_role y red: forzamos Node y ejecución dinámica (sin caché).
 export const runtime = "nodejs";
@@ -34,7 +35,17 @@ async function handle(req: Request) {
   }
 
   const report = await syncResults();
-  return NextResponse.json(report, { status: report.ok ? 200 : 502 });
+
+  // Tras sincronizar resultados, procesa las notificaciones push con la misma
+  // cadencia del cron. Aislado: un fallo aquí nunca afecta a la sincronización.
+  let push: unknown = null;
+  try {
+    push = await processNotifications();
+  } catch (e) {
+    push = { ok: false, error: e instanceof Error ? e.message : "push-error" };
+  }
+
+  return NextResponse.json({ ...report, push }, { status: report.ok ? 200 : 502 });
 }
 
 export async function POST(req: Request) {

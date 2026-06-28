@@ -12,6 +12,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ShareCode } from "@/components/groups/ShareCode";
+import { PushToggle } from "@/components/notifications/PushToggle";
 import { Avatar } from "@/components/ui/Avatar";
 import { removeMember, transferOwnership, setManager, deleteGroup } from "@/app/(app)/grupo/[id]/actions";
 import { resetMemberPin } from "@/app/(app)/grupo/[id]/admin-actions";
@@ -116,6 +117,9 @@ export function ManageTab({
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Notificaciones (este dispositivo) */}
+      <PushToggle />
+
       {/* Invitar */}
       <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-5">
         <h3 className="font-display text-lg font-extrabold uppercase tracking-wide">Invita a tu gente</h3>
