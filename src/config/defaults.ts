@@ -6,7 +6,7 @@ export { POINTS } from "@/lib/scoring/types";
 export const APP_NAME = "QuiniBall";
 
 /** Versión visible de la app (única fuente de verdad para el pie y los avisos). */
-export const APP_VERSION = "1.1.0";
+export const APP_VERSION = "1.2.0";
 
 export const TOURNAMENT = {
   name: "Copa Mundial de la FIFA 2026",

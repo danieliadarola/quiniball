@@ -87,8 +87,63 @@ function teamOf(id: string | null, placeholder: string | null): BracketTeam {
   return { name: t?.name ?? null, iso: t?.iso ?? null, placeholder: placeholder ?? null };
 }
 
+/** Nº de partido referido por "Ganador 73" / "Perdedor 101" (o null). */
+function refOf(placeholder: string | null, kind: "Ganador" | "Perdedor"): number | null {
+  if (!placeholder) return null;
+  const m = new RegExp(`^${kind}\\s+(\\d+)`, "i").exec(placeholder.trim());
+  return m ? Number(m[1]) : null;
+}
+
+/**
+ * Resuelve el equipo CONCRETO de cada lado de un cruce, incluso si el partido
+ * siguiente aún no tiene el id propagado en la BD: si la casilla dice
+ * "Ganador N" y el partido N ya terminó con un ganador, devuelve ese equipo
+ * (en cascada para rondas posteriores). Para "Perdedor N", el perdedor.
+ */
+function makeResolver(matches: BracketMatchInput[]) {
+  const byNum = new Map(matches.map((m) => [m.match_number, m]));
+  const winMemo = new Map<number, string | null>();
+
+  function sideId(m: BracketMatchInput, side: "home" | "away"): string | null {
+    const id = side === "home" ? m.home_team_id : m.away_team_id;
+    if (id) return id;
+    const ph = side === "home" ? m.home_placeholder : m.away_placeholder;
+    const w = refOf(ph, "Ganador");
+    if (w != null) return winnerOf(w);
+    const l = refOf(ph, "Perdedor");
+    if (l != null) return loserOf(l);
+    return null;
+  }
+
+  function decidedSide(m: BracketMatchInput): "home" | "away" | null {
+    if (m.home_goals == null || m.away_goals == null || m.home_goals === m.away_goals) return null;
+    return m.home_goals > m.away_goals ? "home" : "away";
+  }
+
+  function winnerOf(n: number): string | null {
+    if (winMemo.has(n)) return winMemo.get(n)!;
+    winMemo.set(n, null); // corta posibles ciclos
+    const m = byNum.get(n);
+    const side = m ? decidedSide(m) : null;
+    const res = m && side ? sideId(m, side) : null;
+    winMemo.set(n, res);
+    return res;
+  }
+
+  function loserOf(n: number): string | null {
+    const m = byNum.get(n);
+    const side = m ? decidedSide(m) : null;
+    if (!m || !side) return null;
+    return sideId(m, side === "home" ? "away" : "home");
+  }
+
+  return { sideId };
+}
+
 function buildMatch(
   m: BracketMatchInput,
+  homeId: string | null,
+  awayId: string | null,
   pick: MyBracketPick | undefined,
   featured: boolean,
   now: number,
@@ -125,8 +180,8 @@ function buildMatch(
 
   return {
     matchNumber: m.match_number,
-    home: teamOf(m.home_team_id, m.home_placeholder),
-    away: teamOf(m.away_team_id, m.away_placeholder),
+    home: teamOf(homeId, m.home_placeholder),
+    away: teamOf(awayId, m.away_placeholder),
     homeGoals: m.home_goals,
     awayGoals: m.away_goals,
     hasResult,
@@ -151,6 +206,7 @@ export function buildKnockoutBracket(
   featured: Set<number>,
   now: number = Date.now(),
 ): BracketRound[] {
+  const { sideId } = makeResolver(matches);
   const rounds: BracketRound[] = [];
   for (const { phase, label } of KNOCKOUT_ORDER) {
     const ms = matches
@@ -164,7 +220,14 @@ export function buildKnockoutBracket(
       phase,
       label,
       matches: ms.map((m) =>
-        buildMatch(m, myPicks.get(m.match_number), featured.has(m.match_number), now),
+        buildMatch(
+          m,
+          sideId(m, "home"),
+          sideId(m, "away"),
+          myPicks.get(m.match_number),
+          featured.has(m.match_number),
+          now,
+        ),
       ),
     });
   }

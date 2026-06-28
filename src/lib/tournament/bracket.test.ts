@@ -80,6 +80,25 @@ describe("buildKnockoutBracket", () => {
     expect(m.myPoints).toBe(0);
   });
 
+  it("propaga el clasificado: 'Ganador 73' muestra al ganador real del 73", () => {
+    const [r32, r16] = buildKnockoutBracket(
+      [
+        km(73, "round32", "rsa", "can", 0, 1, "2026-06-28T19:00:00Z"),
+        km(89, "round16", null, null, null, null, "2026-07-04T17:00:00Z", ["Ganador 73", "Ganador 74"]),
+      ],
+      new Map(),
+      new Set(),
+      Date.parse("2026-06-29T00:00:00Z"),
+    );
+    void r32;
+    const octavos = r16.matches[0];
+    expect(octavos.home.name).toBe("Canadá");
+    expect(octavos.home.iso).toBe("ca");
+    // El rival (Ganador 74) aún no está decidido: sigue como etiqueta.
+    expect(octavos.away.name).toBeNull();
+    expect(octavos.away.placeholder).toBe("Ganador 74");
+  });
+
   it("cruce sin equipos: usa la etiqueta de origen y no hay resultado", () => {
     const [r] = buildKnockoutBracket(
       [km(101, "final", null, null, null, null, "2026-07-19T17:00:00Z", ["Gan. SF1", "Gan. SF2"])],

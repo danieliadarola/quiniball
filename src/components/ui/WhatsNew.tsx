@@ -12,22 +12,27 @@ const STORAGE_KEY = "qb_whatsnew";
 
 const WHATS_NEW = {
   // Cambia esta clave cuando haya novedades que anunciar (sale una vez por móvil).
-  version: "v1.1.0",
+  version: "v1.2.0",
   items: [
     {
-      icon: "📊",
-      title: "Nuevo apartado «Cuadro»",
-      text: "Consulta la clasificación real del Mundial: tabla de cada grupo con partidos, goles y puntos.",
+      icon: "🏆",
+      title: "Cuadro de eliminatorias",
+      text: "En «Cuadro» tienes la llave completa del Mundial estilo póster. Toca cualquier cruce para ver el marcador y tu pronóstico.",
     },
     {
-      icon: "📱",
-      title: "Menú inferior en el móvil",
-      text: "Navega más rápido con la barra de abajo. La configuración de la quiniela está ahora en la tuerca de arriba.",
+      icon: "⏰",
+      title: "Avisos de cierre",
+      text: "Al entrar en una quiniela verás cuánto queda para el próximo cierre y cuántos partidos te faltan por pronosticar.",
     },
     {
-      icon: "🔐",
-      title: "Sin reloguear a cada rato",
-      text: "Tu dispositivo recuerda la sesión: ya no tienes que iniciar sesión continuamente.",
+      icon: "⏳",
+      title: "Cuenta atrás de fase",
+      text: "En tu panel aparece cuánto falta para que empiece la próxima fase (octavos, cuartos…).",
+    },
+    {
+      icon: "✅",
+      title: "Resultados al completo",
+      text: "Arreglado: en «Resultados» ya se ven los pronósticos de todos los jugadores, también en las eliminatorias.",
     },
   ],
 };
