@@ -147,6 +147,24 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   // Cuadro de eliminatorias: cruces reales + el pronóstico del jugador en cada uno.
   const bracket = buildKnockoutBracket(matches, predByMatch, featuredSet, now);
 
+  // Aviso de cierre: próximo cierre (kickoff − 5 min) y partidos abiertos que me
+  // faltan por pronosticar (1X2 o marcador en el estrella).
+  const openMatches = matches.filter((m) => !isPredictionLocked(Date.parse(m.kickoff_at), now));
+  const hasPick = (n: number) => {
+    const p = predByMatch.get(n);
+    return !!p && (p.outcome != null || (p.homeGoals != null && p.awayGoals != null));
+  };
+  const nextOpenKickoff = openMatches.length
+    ? Math.min(...openMatches.map((m) => Date.parse(m.kickoff_at)))
+    : null;
+  const closing =
+    nextOpenKickoff != null
+      ? {
+          nextLockMs: nextOpenKickoff - PREDICTION_LOCK_LEAD_MS,
+          pendingCount: openMatches.filter((m) => !hasPick(m.match_number)).length,
+        }
+      : null;
+
   // Construir las jornadas con sus partidos.
   const jornadas: JornadaVM[] = matchdays.map((md) => {
     const ms = matches
@@ -223,6 +241,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       matchPicks={matchPicks}
       groupStandings={groupStandings}
       bracket={bracket}
+      closing={closing}
       isAppAdmin={isAppAdmin}
       isMember={isMember}
     />

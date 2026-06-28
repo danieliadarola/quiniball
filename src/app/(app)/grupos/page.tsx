@@ -7,6 +7,7 @@ import { formatKickoff } from "@/lib/matches/format";
 import { isPredictionLocked } from "@/lib/matches/schedule";
 import { GroupCard } from "@/components/groups/GroupCard";
 import { ManageGroupsButton } from "@/components/groups/ManageGroupsButton";
+import { PhaseCountdown, type PhaseStart } from "@/components/dashboard/PhaseCountdown";
 
 export const metadata = { title: "Mis quinielas · QuiniBall" };
 
@@ -37,10 +38,23 @@ interface StandingRow {
 }
 interface MatchRow {
   match_number: number;
+  phase: string;
   kickoff_at: string;
   home_team_id: string | null;
   away_team_id: string | null;
 }
+
+// Fases del torneo en orden, con su etiqueta. "third" (3.º puesto) se omite del
+// contador: no es una "fase" que el jugador espere, va pegada a la final.
+const PHASE_LABEL: Record<string, string> = {
+  group: "Fase de grupos",
+  round32: "Dieciseisavos",
+  round16: "Octavos",
+  quarter: "Cuartos",
+  semi: "Semifinales",
+  final: "Final",
+};
+const PHASE_ORDER = ["group", "round32", "round16", "quarter", "semi", "final"];
 
 /** Home: mis quinielas, puntos totales y accesos a crear/unirse. */
 export default async function GruposPage() {
@@ -61,7 +75,7 @@ export default async function GruposPage() {
       ? (sb.from("standings").select("group_id, profile_id, total_points, rank").in("group_id", groupIds) as unknown as Promise<{ data: StandingRow[] | null }>)
       : Promise.resolve({ data: [] as StandingRow[] }),
     sb.from("predictions").select("group_id, match_number").eq("profile_id", session.sub) as unknown as Promise<{ data: { group_id: string; match_number: number }[] | null }>,
-    sb.from("matches").select("match_number, kickoff_at, home_team_id, away_team_id").order("match_number") as unknown as Promise<{ data: MatchRow[] | null }>,
+    sb.from("matches").select("match_number, phase, kickoff_at, home_team_id, away_team_id").order("match_number") as unknown as Promise<{ data: MatchRow[] | null }>,
   ]);
 
   const now = Date.now();
@@ -78,6 +92,19 @@ export default async function GruposPage() {
     ? `${getTeam(nextMatch.home_team_id!)?.name ?? "?"} vs ${getTeam(nextMatch.away_team_id!)?.name ?? "?"}`
     : null;
   const nextTime = nextMatch ? formatKickoff(nextMatch.kickoff_at) : null;
+
+  // Inicio (kickoff más temprano) de cada fase, para el contador del dashboard.
+  const phaseStart = new Map<string, number>();
+  for (const m of allMatches) {
+    const t = Date.parse(m.kickoff_at);
+    const cur = phaseStart.get(m.phase);
+    if (cur == null || t < cur) phaseStart.set(m.phase, t);
+  }
+  const phases: PhaseStart[] = PHASE_ORDER.filter((p) => phaseStart.has(p)).map((p) => ({
+    phase: p,
+    label: PHASE_LABEL[p],
+    startMs: phaseStart.get(p)!,
+  }));
 
   // Mapas por grupo.
   const membersByGroup = new Map<string, number>();
@@ -133,12 +160,15 @@ export default async function GruposPage() {
 
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-0 px-5 py-6 safe-px [--pad-x:1.25rem] safe-pb [--pad-b:1.5rem]">
-      {/* Saludo */}
-      <div className="mb-1">
-        <span className="text-sm font-semibold text-muted">Hola,</span>
-        <h1 className="font-display text-4xl font-extrabold italic uppercase leading-[0.9] text-fg">
-          {session.display_name}
-        </h1>
+      {/* Saludo + contador de la próxima fase (esquina superior derecha) */}
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-sm font-semibold text-muted">Hola,</span>
+          <h1 className="truncate font-display text-4xl font-extrabold italic uppercase leading-[0.9] text-fg">
+            {session.display_name}
+          </h1>
+        </div>
+        <PhaseCountdown phases={phases} />
       </div>
 
       <div className="mb-3 mt-6 flex items-center gap-2">

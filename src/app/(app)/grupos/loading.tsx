@@ -5,9 +5,12 @@
 export default function Loading() {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-col gap-0 px-5 py-6 safe-px [--pad-x:1.25rem]">
-      <div className="mb-1 animate-pulse">
-        <div className="h-4 w-16 rounded bg-surface2" />
-        <div className="mt-2 h-9 w-48 rounded-lg bg-surface2" />
+      <div className="mb-1 flex animate-pulse items-start justify-between gap-3">
+        <div>
+          <div className="h-4 w-16 rounded bg-surface2" />
+          <div className="mt-2 h-9 w-48 rounded-lg bg-surface2" />
+        </div>
+        <div className="h-12 w-24 rounded-2xl bg-surface2" />
       </div>
 
       <div className="mb-3 mt-6 flex items-center gap-2">

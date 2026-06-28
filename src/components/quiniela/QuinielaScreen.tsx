@@ -38,6 +38,7 @@ import type { StandingRow } from "@/lib/standings/fetch";
 import type { MatchPicks } from "@/lib/history/picks";
 import type { GroupStandings } from "@/lib/tournament/groupTable";
 import type { BracketRound } from "@/lib/tournament/bracket";
+import { ClosingAlert } from "@/components/quiniela/ClosingAlert";
 
 type Tab = "partidos" | "ranking" | "historial" | "cuadro" | "gestionar";
 
@@ -78,6 +79,7 @@ export function QuinielaScreen({
   matchPicks,
   groupStandings,
   bracket,
+  closing,
   isAppAdmin,
   isMember,
 }: {
@@ -97,6 +99,7 @@ export function QuinielaScreen({
   matchPicks: MatchPicks[];
   groupStandings: GroupStandings[];
   bracket: BracketRound[];
+  closing: { nextLockMs: number; pendingCount: number } | null;
   isAppAdmin: boolean;
   isMember: boolean;
 }) {
@@ -203,6 +206,11 @@ export function QuinielaScreen({
 
       {tab === "partidos" ? (
         <div className="flex flex-col gap-3.5 px-4 pt-3.5 safe-px [--pad-x:1rem]">
+          {/* Aviso de cierre de pronósticos */}
+          {closing && (
+            <ClosingAlert nextLockMs={closing.nextLockMs} pendingCount={closing.pendingCount} />
+          )}
+
           {/* Chips de jornada */}
           <div className="flex gap-2 overflow-x-auto pb-1">
             {jornadas.map((jx, i) => (
