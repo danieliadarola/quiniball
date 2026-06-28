@@ -10,8 +10,8 @@
 import { useState } from "react";
 import { Flag } from "@/components/ui/Flag";
 import type { GroupStandings, FormResult } from "@/lib/tournament/groupTable";
-import type { BracketRound, BracketMatch, BracketTeam } from "@/lib/tournament/bracket";
-import type { Outcome } from "@/lib/scoring/types";
+import type { BracketRound } from "@/lib/tournament/bracket";
+import { KnockoutBracket } from "@/components/quiniela/KnockoutBracket";
 
 export function CuadroTab({
   groups,
@@ -58,139 +58,9 @@ export function CuadroTab({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-6">
-          {bracket.map((r) => (
-            <RoundBlock key={r.phase} round={r} />
-          ))}
-          <p className="px-1 text-[11px] leading-relaxed text-muted2">
-            Marcador y clasificado son oficiales. «Tu pron.» muestra tu 1X2 y, en
-            partidos jugados, si acertaste y los puntos que sacaste.
-          </p>
-        </div>
+        <KnockoutBracket bracket={bracket} />
       )}
     </div>
-  );
-}
-
-const OUTCOME_LABEL: Record<Outcome, string> = { "1": "Local", X: "Empate", "2": "Visit." };
-
-function RoundBlock({ round }: { round: BracketRound }) {
-  return (
-    <div className="flex flex-col gap-2.5">
-      <h3 className="px-1 font-display text-[13px] font-extrabold uppercase tracking-[0.6px] text-muted">
-        {round.label}
-      </h3>
-      {round.matches.map((m) => (
-        <BracketMatchCard key={m.matchNumber} match={m} />
-      ))}
-    </div>
-  );
-}
-
-function BracketMatchCard({ match: m }: { match: BracketMatch }) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-      <TeamRow team={m.home} goals={m.homeGoals} isWinner={m.winner === "home"} hasResult={m.hasResult} />
-      <div className="h-px bg-line/70" />
-      <TeamRow team={m.away} goals={m.awayGoals} isWinner={m.winner === "away"} hasResult={m.hasResult} />
-      <MatchFooter match={m} />
-    </div>
-  );
-}
-
-function TeamRow({
-  team,
-  goals,
-  isWinner,
-  hasResult,
-}: {
-  team: BracketTeam;
-  goals: number | null;
-  isWinner: boolean;
-  hasResult: boolean;
-}) {
-  const known = !!team.name;
-  return (
-    <div className={`flex items-center gap-2.5 px-3.5 py-2.5 ${isWinner ? "bg-primary/[0.08]" : ""}`}>
-      {known ? (
-        <Flag iso={team.iso} size={22} />
-      ) : (
-        <span className="h-[22px] w-[22px] shrink-0 rounded-full bg-surface3" aria-hidden />
-      )}
-      <span
-        className={`min-w-0 flex-1 truncate text-[13.5px] ${
-          known ? "font-bold text-fg" : "font-semibold italic text-muted2"
-        }`}
-      >
-        {team.name ?? team.placeholder ?? "Por determinar"}
-      </span>
-      {isWinner && (
-        <svg viewBox="0 0 24 24" width="15" height="15" className="qb-stroke shrink-0 text-primary" aria-hidden>
-          <path d="M20 6L9 17l-5-5" />
-        </svg>
-      )}
-      <span
-        className={`w-5 text-right font-display text-[15px] font-extrabold tabular-nums ${
-          isWinner ? "text-fg" : "text-muted"
-        }`}
-      >
-        {hasResult ? goals : "–"}
-      </span>
-    </div>
-  );
-}
-
-function MatchFooter({ match: m }: { match: BracketMatch }) {
-  return (
-    <div className="flex items-center gap-2 border-t border-line bg-ink/30 px-3.5 py-2">
-      {!m.hasResult && <span className="text-[11px] font-bold text-muted2">{m.whenLabel}</span>}
-      {m.featured && (
-        <span className="inline-flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[0.3px] text-accent">
-          ★ Estrella
-        </span>
-      )}
-      <div className="ml-auto flex items-center gap-2">
-        {m.myOutcome === null ? (
-          <span className="text-[11px] font-semibold italic text-muted2">
-            {m.hasResult ? "No pronosticaste" : "Sin pronóstico"}
-          </span>
-        ) : (
-          <>
-            <span className="text-[11px] font-bold text-muted2">Tu pron.</span>
-            <OutcomeChip
-              outcome={m.myOutcome}
-              state={m.hasResult ? (m.myCorrect ? "good" : "bad") : "neutral"}
-            />
-            {m.hasResult && (
-              <span
-                className={`font-display text-[12.5px] font-extrabold tabular-nums ${
-                  (m.myPoints ?? 0) > 0 ? "text-accent" : "text-muted2"
-                }`}
-              >
-                {(m.myPoints ?? 0) > 0 ? `+${m.myPoints}` : "0"}
-              </span>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function OutcomeChip({ outcome, state }: { outcome: Outcome; state: "good" | "bad" | "neutral" }) {
-  const cls =
-    state === "good"
-      ? "border-good/60 bg-good/15 text-good"
-      : state === "bad"
-        ? "border-bad/50 bg-bad/10 text-bad"
-        : "border-line2 bg-surface2 text-fg";
-  return (
-    <span
-      className={`inline-flex h-6 min-w-[2rem] items-center justify-center rounded-lg border px-1.5 text-[11px] font-extrabold uppercase ${cls}`}
-      title={OUTCOME_LABEL[outcome]}
-    >
-      {outcome}
-    </span>
   );
 }
 
