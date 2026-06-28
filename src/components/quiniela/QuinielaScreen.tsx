@@ -38,7 +38,7 @@ import type { StandingRow } from "@/lib/standings/fetch";
 import type { MatchPicks } from "@/lib/history/picks";
 import type { GroupStandings } from "@/lib/tournament/groupTable";
 import type { BracketRound } from "@/lib/tournament/bracket";
-import { ClosingAlert } from "@/components/quiniela/ClosingAlert";
+import { JornadaAlert } from "@/components/quiniela/ClosingAlert";
 
 type Tab = "partidos" | "ranking" | "historial" | "cuadro" | "gestionar";
 
@@ -62,6 +62,11 @@ const BANNERS = [
   "linear-gradient(120deg,#1F8A5B,#0c3322)",
 ];
 
+/** ¿El jugador ya pronosticó este partido (1X2 o marcador en el estrella)? */
+function hasPick(p: PredVM | undefined): boolean {
+  return !!p && (p.outcome != null || (p.homeGoals != null && p.awayGoals != null));
+}
+
 export function QuinielaScreen({
   groupId,
   name,
@@ -79,7 +84,6 @@ export function QuinielaScreen({
   matchPicks,
   groupStandings,
   bracket,
-  closing,
   isAppAdmin,
   isMember,
 }: {
@@ -99,7 +103,6 @@ export function QuinielaScreen({
   matchPicks: MatchPicks[];
   groupStandings: GroupStandings[];
   bracket: BracketRound[];
-  closing: { nextLockMs: number; pendingCount: number } | null;
   isAppAdmin: boolean;
   isMember: boolean;
 }) {
@@ -206,9 +209,14 @@ export function QuinielaScreen({
 
       {tab === "partidos" ? (
         <div className="flex flex-col gap-3.5 px-4 pt-3.5 safe-px [--pad-x:1rem]">
-          {/* Aviso de cierre de pronósticos */}
-          {closing && (
-            <ClosingAlert nextLockMs={closing.nextLockMs} pendingCount={closing.pendingCount} />
+          {/* Aviso de la jornada: siguiente partido + pronósticos que faltan */}
+          {j && (
+            <JornadaAlert
+              matches={j.matches.map((m) => ({
+                kickoffMs: m.kickoffMs,
+                predicted: hasPick(predictions[m.matchNumber]),
+              }))}
+            />
           )}
 
           {/* Chips de jornada */}

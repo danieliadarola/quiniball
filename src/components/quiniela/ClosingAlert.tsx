@@ -1,26 +1,28 @@
 "use client";
 
 /**
- * Banner de CIERRE DE PRONÓSTICOS al principio de la pestaña Partidos.
+ * Aviso de la JORNADA SELECCIONADA al principio de la pestaña Partidos.
  *
- * Cuenta atrás en vivo hacia el próximo cierre (kickoff − 5 min) y cuántos
- * partidos abiertos te faltan por pronosticar. Dos estados:
- *   · pendientes > 0 → urgente (ámbar): "Cierra en 2h 15m · te faltan 3 partidos".
- *   · al día        → tranquilo: "Próximo cierre en 2h 15m · vas al día ✓".
+ * Muestra dos cosas, en vivo y referidas SOLO a esa jornada:
+ *   · cuenta atrás al SIGUIENTE PARTIDO de la jornada (su kickoff), y
+ *   · cuántos partidos te FALTAN POR PRONOSTICAR (abiertos: cierre 5 min antes).
  *
- * El reloj arranca en el cliente para no romper la hidratación. Cuando el cierre
- * ya ha pasado (dato del servidor desfasado), no muestra nada hasta recargar.
+ * Estados: si te faltan pronósticos → ámbar (urgente); si vas al día → tranquilo.
+ * Si la jornada ya no tiene partidos por empezar, no se muestra.
+ *
+ * El reloj arranca en el cliente (sin desajuste de hidratación) y como recibe la
+ * jornada actual por props, cambia solo al cambiar de jornada.
  */
 import { useEffect, useState } from "react";
+import { PREDICTION_LOCK_LEAD_MS } from "@/lib/matches/schedule";
 import { formatCountdown } from "@/lib/time/countdown";
 
-export function ClosingAlert({
-  nextLockMs,
-  pendingCount,
-}: {
-  nextLockMs: number;
-  pendingCount: number;
-}) {
+export interface JornadaMatch {
+  kickoffMs: number;
+  predicted: boolean;
+}
+
+export function JornadaAlert({ matches }: { matches: JornadaMatch[] }) {
   const [now, setNow] = useState<number | null>(null);
 
   useEffect(() => {
@@ -29,19 +31,25 @@ export function ClosingAlert({
     return () => clearInterval(id);
   }, []);
 
-  if (now === null) return null; // evita parpadeo/desajuste hasta montar
-  const remaining = nextLockMs - now;
-  if (remaining <= 0) return null;
+  if (now === null) return null;
 
-  const urgent = pendingCount > 0;
-  const time = formatCountdown(remaining);
+  // Siguiente partido de la jornada (el primero que aún no ha empezado).
+  const upcoming = matches.filter((m) => m.kickoffMs > now).sort((a, b) => a.kickoffMs - b.kickoffMs);
+  const next = upcoming[0];
+  if (!next) return null; // jornada en juego o finalizada: sin aviso
+
+  // Faltan por pronosticar: partidos aún abiertos (cierre 5 min antes) sin pick.
+  const pending = matches.filter(
+    (m) => now < m.kickoffMs - PREDICTION_LOCK_LEAD_MS && !m.predicted,
+  ).length;
+
+  const urgent = pending > 0;
+  const time = formatCountdown(next.kickoffMs - now);
 
   return (
     <div
       className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${
-        urgent
-          ? "border-accent/50 bg-accent/10"
-          : "border-line bg-surface2"
+        urgent ? "border-accent/50 bg-accent/10" : "border-line bg-surface2"
       }`}
     >
       <span
@@ -57,20 +65,12 @@ export function ClosingAlert({
       </span>
       <div className="min-w-0 flex-1">
         <p className="text-[13.5px] font-bold text-fg">
-          {urgent ? (
-            <>
-              Cierra en <span className="text-accent">{time}</span>
-            </>
-          ) : (
-            <>
-              Próximo cierre en <span className="text-fg">{time}</span>
-            </>
-          )}
+          Siguiente partido en <span className={urgent ? "text-accent" : "text-fg"}>{time}</span>
         </p>
         <p className="text-[11.5px] font-semibold text-muted">
           {urgent
-            ? `Te faltan ${pendingCount} ${pendingCount === 1 ? "partido" : "partidos"} por pronosticar`
-            : "Vas al día ✓"}
+            ? `Te faltan ${pending} ${pending === 1 ? "partido" : "partidos"} por pronosticar en esta jornada`
+            : "Vas al día en esta jornada ✓"}
         </p>
       </div>
     </div>

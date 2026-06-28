@@ -12,6 +12,7 @@ export interface MatchVM {
   matchNumber: number;
   groupLabel: string; // "Grupo A", "Octavos", …
   timeLabel: string; // hora de inicio
+  kickoffMs: number; // inicio en epoch ms (para cuentas atrás en cliente)
   home: { name: string; iso: string | null } | null;
   away: { name: string; iso: string | null } | null;
   homeLabel: string;
