@@ -37,6 +37,7 @@ const AdminEditPanel = dynamic(() =>
 import type { StandingRow } from "@/lib/standings/fetch";
 import type { MatchPicks } from "@/lib/history/picks";
 import type { GroupStandings } from "@/lib/tournament/groupTable";
+import type { BracketRound } from "@/lib/tournament/bracket";
 
 type Tab = "partidos" | "ranking" | "historial" | "cuadro" | "gestionar";
 
@@ -76,6 +77,7 @@ export function QuinielaScreen({
   managerIds,
   matchPicks,
   groupStandings,
+  bracket,
   isAppAdmin,
   isMember,
 }: {
@@ -94,6 +96,7 @@ export function QuinielaScreen({
   managerIds: string[];
   matchPicks: MatchPicks[];
   groupStandings: GroupStandings[];
+  bracket: BracketRound[];
   isAppAdmin: boolean;
   isMember: boolean;
 }) {
@@ -273,7 +276,7 @@ export function QuinielaScreen({
         </div>
       ) : tab === "cuadro" ? (
         <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
-          <CuadroTab groups={groupStandings} />
+          <CuadroTab groups={groupStandings} bracket={bracket} />
         </div>
       ) : (
         <div className="px-4 pt-4 safe-px [--pad-x:1rem]">

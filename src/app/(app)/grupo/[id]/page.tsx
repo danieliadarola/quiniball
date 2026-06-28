@@ -6,6 +6,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { fetchStandings } from "@/lib/standings/fetch";
 import { fetchMatchPicks } from "@/lib/history/picks";
 import { computeGroupStandings } from "@/lib/tournament/groupTable";
+import { buildKnockoutBracket } from "@/lib/tournament/bracket";
 import { getTeam } from "@/data/tournament/teams";
 import { formatKickoff, formatDay } from "@/lib/matches/format";
 import { isPredictionLocked, PREDICTION_LOCK_LEAD_MS } from "@/lib/matches/schedule";
@@ -143,6 +144,9 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
   const predictions: Record<number, PredVM> = {};
   predByMatch.forEach((v, k) => (predictions[k] = v));
 
+  // Cuadro de eliminatorias: cruces reales + el pronóstico del jugador en cada uno.
+  const bracket = buildKnockoutBracket(matches, predByMatch, featuredSet, now);
+
   // Construir las jornadas con sus partidos.
   const jornadas: JornadaVM[] = matchdays.map((md) => {
     const ms = matches
@@ -218,6 +222,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       managerIds={managerIds}
       matchPicks={matchPicks}
       groupStandings={groupStandings}
+      bracket={bracket}
       isAppAdmin={isAppAdmin}
       isMember={isMember}
     />
