@@ -78,6 +78,41 @@ interface PredRow {
 }
 
 /**
+ * Lee TODOS los pronósticos de una quiniela paginando.
+ *
+ * PostgREST limita cada respuesta a 1000 filas. Una quiniela con muchos
+ * jugadores y partidos supera ese tope (16 jugadores × 104 partidos ≈ 1664),
+ * así que una sola lectura devolvía un subconjunto y muchos pronósticos —sobre
+ * todo los más recientes (eliminatorias)— aparecían como "No pronosticó".
+ * Aquí se recorren páginas de 1000 hasta agotar la tabla, con un orden estable
+ * para no repetir ni saltarnos filas entre páginas.
+ */
+const PRED_PAGE_SIZE = 1000;
+async function fetchGroupPredictions(
+  db: SupabaseClient,
+  groupId: string,
+): Promise<PredRow[]> {
+  const all: PredRow[] = [];
+  for (let from = 0; ; from += PRED_PAGE_SIZE) {
+    const { data, error } = (await db
+      .from("predictions")
+      .select("profile_id, match_number, pred_home_goals, pred_away_goals, pred_outcome")
+      .eq("group_id", groupId)
+      .order("match_number", { ascending: true })
+      .order("profile_id", { ascending: true })
+      .range(from, from + PRED_PAGE_SIZE - 1)) as unknown as {
+      data: PredRow[] | null;
+      error: { message: string } | null;
+    };
+    if (error) throw new Error(error.message);
+    const batch = data ?? [];
+    all.push(...batch);
+    if (batch.length < PRED_PAGE_SIZE) break;
+  }
+  return all;
+}
+
+/**
  * Devuelve los partidos ya empezados con los pronósticos de cada miembro,
  * ordenados con los más recientes arriba (en juego primero).
  *
@@ -90,7 +125,7 @@ export async function fetchMatchPicks(
   now: number = Date.now(),
 ): Promise<MatchPicks[]> {
   try {
-    const [{ data: matchRows }, { data: featRows }, { data: predRows }] = await Promise.all([
+    const [{ data: matchRows }, { data: featRows }, predRows] = await Promise.all([
       db
         .from("matches")
         .select(
@@ -100,10 +135,8 @@ export async function fetchMatchPicks(
         .from("group_featured_matches")
         .select("match_number")
         .eq("group_id", groupId) as unknown as Promise<{ data: { match_number: number }[] | null }>,
-      db
-        .from("predictions")
-        .select("profile_id, match_number, pred_home_goals, pred_away_goals, pred_outcome")
-        .eq("group_id", groupId) as unknown as Promise<{ data: PredRow[] | null }>,
+      // Paginado: una quiniela grande supera el tope de 1000 filas de PostgREST.
+      fetchGroupPredictions(db, groupId),
     ]);
 
     const featured = new Set((featRows ?? []).map((f) => f.match_number));
@@ -120,7 +153,7 @@ export async function fetchMatchPicks(
     // Pronósticos indexados por partido → perfil. Solo de partidos empezados:
     // así jamás se envían al cliente picks de partidos aún abiertos.
     const byMatch = new Map<number, Map<string, PredRow>>();
-    for (const p of predRows ?? []) {
+    for (const p of predRows) {
       if (!startedNums.has(p.match_number)) continue;
       let mm = byMatch.get(p.match_number);
       if (!mm) {
