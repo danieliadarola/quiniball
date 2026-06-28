@@ -34,6 +34,11 @@ const WHATS_NEW = {
       title: "Resultados al completo",
       text: "Arreglado: en «Resultados» ya se ven los pronósticos de todos los jugadores, también en las eliminatorias.",
     },
+    {
+      icon: "📣",
+      title: "Compartir en WhatsApp",
+      text: "Nuevo botón «Compartir» en la quiniela: manda tu posición, el ranking, el resumen de la jornada o la invitación al grupo.",
+    },
   ],
 };
 

@@ -6,6 +6,9 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { MatchCard, type MatchVM, type PredVM } from "@/components/predictions/MatchCard";
 import { renameGroup } from "@/app/(app)/grupos/actions";
+import { ShareMenu } from "@/components/quiniela/ShareMenu";
+import { scoreMatch } from "@/lib/scoring/match";
+import { outcomeFromGoals } from "@/lib/scoring/outcome";
 
 // Cada pestaña se carga SOLO al abrirse (lazy). Así la pantalla inicial
 // ("Partidos") no arrastra el JS del resto (el Ranking en vivo trae el cliente
@@ -116,6 +119,33 @@ export function QuinielaScreen({
   const [jIdx, setJIdx] = useState(initialJ);
   const j = jornadas[jIdx];
 
+  // Resumen de la jornada seleccionada (mis puntos y aciertos en sus partidos ya
+  // finalizados), para la opción de compartir.
+  const jornadaSummary = useMemo(() => {
+    if (!j) return null;
+    let points = 0;
+    let aciertos = 0;
+    let total = 0;
+    for (const m of j.matches) {
+      if (!m.result) continue;
+      total++;
+      const p = predictions[m.matchNumber];
+      if (!p) continue;
+      points += scoreMatch(
+        m.featured,
+        { predHomeGoals: p.homeGoals, predAwayGoals: p.awayGoals, predOutcome: p.outcome },
+        { homeGoals: m.result.home, awayGoals: m.result.away },
+      );
+      const myOutcome =
+        p.outcome ??
+        (p.homeGoals != null && p.awayGoals != null
+          ? outcomeFromGoals(p.homeGoals, p.awayGoals)
+          : null);
+      if (myOutcome && myOutcome === m.result.outcome) aciertos++;
+    }
+    return total > 0 ? { name: j.name, points, aciertos, total } : null;
+  }, [j, predictions]);
+
   // Edición del nombre de la quiniela (dueño o co-organizador).
   const router = useRouter();
   const [groupName, setGroupName] = useState(name);
@@ -172,6 +202,16 @@ export function QuinielaScreen({
           </span>
           <span className="text-[11px] font-bold text-muted">{myPoints} pts</span>
         </div>
+        {/* Compartir (texto + enlace a WhatsApp): visible en móvil y escritorio. */}
+        <ShareMenu
+          groupName={groupName}
+          inviteUrl={inviteUrl}
+          myRank={myRank}
+          myPoints={myPoints}
+          standings={standings.map((s) => ({ displayName: s.displayName, totalPoints: s.totalPoints }))}
+          jornada={jornadaSummary}
+        />
+
         {/* Tuerca de "Gestionar" (estilo Instagram): solo en móvil; en escritorio
             Gestionar es una pestaña más. */}
         <button
