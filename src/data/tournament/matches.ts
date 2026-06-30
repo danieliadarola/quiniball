@@ -173,11 +173,23 @@ function buildKnockouts(): Match[] {
     ko.push(koMatch(73 + i, "round32", R32_DATES[i], 18, nextVenue(), home, away));
   });
 
-  // Octavos (89–96): cruces de los ganadores de 32avos
-  for (let i = 0; i < 8; i++) {
-    const a = 73 + i * 2;
-    ko.push(koMatch(89 + i, "round16", R16_DATES[i], 18, nextVenue(), `Ganador ${a}`, `Ganador ${a + 1}`));
-  }
+  // Octavos (89–96): cruces de los ganadores de 32avos. El emparejamiento NO es
+  // secuencial: sigue el cuadro oficial FIFA 2026 (verificado contra los datos
+  // reales de football-data). Cada par son los nº de partido de 32avos cuyos
+  // ganadores se enfrentan. [local, visitante].
+  const R16_FEEDERS: [number, number][] = [
+    [73, 76], // 89
+    [75, 78], // 90
+    [74, 77], // 91
+    [79, 80], // 92
+    [84, 83], // 93
+    [82, 81], // 94
+    [87, 85], // 95
+    [86, 88], // 96
+  ];
+  R16_FEEDERS.forEach(([h, a], i) => {
+    ko.push(koMatch(89 + i, "round16", R16_DATES[i], 18, nextVenue(), `Ganador ${h}`, `Ganador ${a}`));
+  });
 
   // Cuartos (97–100)
   for (let i = 0; i < 4; i++) {
