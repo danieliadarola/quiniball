@@ -37,6 +37,9 @@ interface MatchRow {
   away_placeholder: string | null;
   home_goals: number | null;
   away_goals: number | null;
+  winner_team_id: string | null;
+  pen_home: number | null;
+  pen_away: number | null;
 }
 interface PredRow {
   match_number: number;
@@ -98,7 +101,7 @@ export default async function GrupoPage({ params }: { params: Promise<{ id: stri
       db
         .from("matches")
         .select(
-          "match_number, matchday_id, phase, group_letter, kickoff_at, home_team_id, away_team_id, home_placeholder, away_placeholder, home_goals, away_goals",
+          "match_number, matchday_id, phase, group_letter, kickoff_at, home_team_id, away_team_id, home_placeholder, away_placeholder, home_goals, away_goals, winner_team_id, pen_home, pen_away",
         )
         .order("match_number") as unknown as Promise<{ data: MatchRow[] | null }>,
       db

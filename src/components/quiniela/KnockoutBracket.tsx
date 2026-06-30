@@ -388,6 +388,7 @@ function DetailModal({ placed: p, onClose }: { placed: Placed; onClose: () => vo
         <div className="flex flex-col gap-2 px-4 py-4">
           <DetailRow team={m.home} goals={m.homeGoals} win={m.winner === "home"} hasResult={m.hasResult} />
           <DetailRow team={m.away} goals={m.awayGoals} win={m.winner === "away"} hasResult={m.hasResult} />
+          <DecisionNote match={m} />
         </div>
 
         <div className="flex items-center gap-2 border-t border-line bg-ink/30 px-4 py-2.5">
@@ -424,6 +425,25 @@ function DetailModal({ placed: p, onClose }: { placed: Placed; onClose: () => vo
         </div>
       </div>
     </div>
+  );
+}
+
+/** Nota de cómo se resolvió el cruce fuera de los 90' (penales o prórroga).
+ *  El 1X2 se puntúa por el reglamentario, así que aquí solo se informa. */
+function DecisionNote({ match: m }: { match: BracketMatch }) {
+  if (!m.hasResult || m.decidedBy === "regular") return null;
+  const winnerName =
+    m.winner === "home" ? m.home.name : m.winner === "away" ? m.away.name : null;
+  const detail =
+    m.decidedBy === "penalties" && m.penHome != null
+      ? `en los penales (${m.penHome}-${m.penAway})`
+      : "en la prórroga";
+  return (
+    <p className="mt-0.5 rounded-lg bg-surface2 px-2.5 py-1.5 text-center text-[11.5px] font-semibold text-muted">
+      Pasa <span className="font-bold text-fg">{winnerName ?? "el clasificado"}</span> {detail}.
+      <br />
+      <span className="text-[10.5px] text-muted2">El 1X2 puntúa por el resultado a los 90&apos;.</span>
+    </p>
   );
 }
 

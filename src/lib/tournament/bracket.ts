@@ -36,8 +36,29 @@ export interface BracketMatchInput {
   away_team_id: string | null;
   home_placeholder: string | null;
   away_placeholder: string | null;
+  /** Marcador a los 90' (reglamentario): es lo que puntúa el 1X2. */
   home_goals: number | null;
   away_goals: number | null;
+  /** Clasificado tras prórroga/penales (null si se decidió en los 90'). */
+  winner_team_id?: string | null;
+  /** Tanda de penales, solo para mostrar (null si no la hubo). */
+  pen_home?: number | null;
+  pen_away?: number | null;
+}
+
+/**
+ * Lado que SE CLASIFICA. Si el partido se decidió fuera de los 90' lo dicta
+ * `winner_team_id` (con empate a 90' el marcador no basta); si no, se deduce
+ * del marcador como siempre. Null si aún no hay resultado o quedó igualado y
+ * sin clasificado conocido.
+ */
+export function decidedSide(m: BracketMatchInput): "home" | "away" | null {
+  if (m.winner_team_id) {
+    if (m.winner_team_id === m.home_team_id) return "home";
+    if (m.winner_team_id === m.away_team_id) return "away";
+  }
+  if (m.home_goals == null || m.away_goals == null || m.home_goals === m.away_goals) return null;
+  return m.home_goals > m.away_goals ? "home" : "away";
 }
 
 /** Pronóstico del jugador para un partido (1X2 directo o derivado de goles). */
@@ -64,6 +85,11 @@ export interface BracketMatch {
   hasResult: boolean;
   /** Lado que pasó de ronda (null si aún no hay resultado o quedó igualado). */
   winner: "home" | "away" | null;
+  /** Cómo se decidió: en los 90' ("regular"), en la prórroga o en penales. */
+  decidedBy: "regular" | "extra" | "penalties";
+  /** Tanda de penales (para mostrar), null si no la hubo. */
+  penHome: number | null;
+  penAway: number | null;
   whenLabel: string;
   locked: boolean;
   /** 1/X/2 del jugador. Null = no pronosticó. */
@@ -115,11 +141,6 @@ function makeResolver(matches: BracketMatchInput[]) {
     return null;
   }
 
-  function decidedSide(m: BracketMatchInput): "home" | "away" | null {
-    if (m.home_goals == null || m.away_goals == null || m.home_goals === m.away_goals) return null;
-    return m.home_goals > m.away_goals ? "home" : "away";
-  }
-
   function winnerOf(n: number): string | null {
     if (winMemo.has(n)) return winMemo.get(n)!;
     winMemo.set(n, null); // corta posibles ciclos
@@ -149,13 +170,16 @@ function buildMatch(
   now: number,
 ): BracketMatch {
   const hasResult = m.home_goals !== null && m.away_goals !== null;
-  const winner: BracketMatch["winner"] = hasResult
-    ? m.home_goals! > m.away_goals!
-      ? "home"
-      : m.home_goals! < m.away_goals!
-        ? "away"
-        : null
-    : null;
+  // El que pasa de ronda: por penales/prórroga si los hubo, si no por el 90'.
+  const winner: BracketMatch["winner"] = hasResult ? decidedSide(m) : null;
+  const penHome = m.pen_home ?? null;
+  const penAway = m.pen_away ?? null;
+  const decidedBy: BracketMatch["decidedBy"] =
+    penHome != null
+      ? "penalties"
+      : m.winner_team_id && m.home_goals != null && m.home_goals === m.away_goals
+        ? "extra"
+        : "regular";
 
   const myOutcome: Outcome | null = pick
     ? pick.outcome ??
@@ -186,6 +210,9 @@ function buildMatch(
     awayGoals: m.away_goals,
     hasResult,
     winner,
+    decidedBy,
+    penHome,
+    penAway,
     whenLabel: formatKickoff(m.kickoff_at),
     locked: isPredictionLocked(Date.parse(m.kickoff_at), now),
     myOutcome,

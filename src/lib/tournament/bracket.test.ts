@@ -99,6 +99,48 @@ describe("buildKnockoutBracket", () => {
     expect(octavos.away.placeholder).toBe("Ganador 74");
   });
 
+  it("penales: empate a 90' puntúa el 1X2 como X y aun así avanza el clasificado", () => {
+    // NED-MAR: 1-1 en los 90', pasa Marruecos (visitante) en penales 2-3.
+    const ned_mar: BracketMatchInput = {
+      match_number: 76,
+      phase: "round32",
+      kickoff_at: "2026-06-29T19:00:00Z",
+      home_team_id: "ned",
+      away_team_id: "mar",
+      home_placeholder: null,
+      away_placeholder: null,
+      home_goals: 1,
+      away_goals: 1,
+      winner_team_id: "mar",
+      pen_home: 2,
+      pen_away: 3,
+    };
+    const picks = new Map<number, MyBracketPick>([
+      [76, { outcome: "X", homeGoals: null, awayGoals: null }],
+    ]);
+    const [r32, r16] = buildKnockoutBracket(
+      [
+        ned_mar,
+        km(92, "round16", null, null, null, null, "2026-07-04T17:00:00Z", ["Ganador 76", "Ganador 75"]),
+      ],
+      picks,
+      new Set(),
+      Date.parse("2026-06-30T00:00:00Z"),
+    );
+    const m = r32.matches[0];
+    // El que pone EMPATE acierta (3 puntos), no el que puso a Marruecos.
+    expect(m.myOutcome).toBe("X");
+    expect(m.myCorrect).toBe(true);
+    expect(m.myPoints).toBe(3);
+    // Pero Marruecos (visitante) es quien pasa, con la nota de penales.
+    expect(m.winner).toBe("away");
+    expect(m.decidedBy).toBe("penalties");
+    expect(m.penHome).toBe(2);
+    expect(m.penAway).toBe(3);
+    // Y se propaga al cruce siguiente pese al empate.
+    expect(r16.matches[0].home.name).toBe("Marruecos");
+  });
+
   it("cruce sin equipos: usa la etiqueta de origen y no hay resultado", () => {
     const [r] = buildKnockoutBracket(
       [km(101, "final", null, null, null, null, "2026-07-19T17:00:00Z", ["Gan. SF1", "Gan. SF2"])],
