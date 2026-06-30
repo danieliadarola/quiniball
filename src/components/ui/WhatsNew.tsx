@@ -12,8 +12,13 @@ const STORAGE_KEY = "qb_whatsnew";
 
 const WHATS_NEW = {
   // Cambia esta clave cuando haya novedades que anunciar (sale una vez por móvil).
-  version: "v1.2.0",
+  version: "v1.2.1",
   items: [
+    {
+      icon: "⚖️",
+      title: "Eliminatorias: puntúa el tiempo reglamentario",
+      text: "En las eliminatorias el 1X2 se decide por el resultado a los 90 minutos: si hay empate y se resuelve en la prórroga o los penales, acierta quien puso empate. Ya hemos ajustado los puntos de los cruces afectados.",
+    },
     {
       icon: "🏆",
       title: "Cuadro de eliminatorias",
