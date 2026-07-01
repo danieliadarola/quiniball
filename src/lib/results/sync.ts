@@ -57,22 +57,41 @@ interface ApiFixture {
   score?: {
     winner?: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
     duration?: string | null;
+    // `fullTime` es el TOTAL: suma los goles de prórroga y los penales.
     fullTime?: ApiScorePair | null;
-    // Solo presente cuando el partido pasó de los 90' (prórroga/penales). En la
-    // fase de grupos viene null y `fullTime` ES el reglamentario.
+    // Marcador a los 90'. OJO: football-data a veces lo deja en null aunque el
+    // partido fuera a prórroga (viene el incremento en `extraTime`). No fiarse
+    // de este campo en solitario: usar `regulationScore()`.
     regularTime?: ApiScorePair | null;
+    // Goles marcados SOLO en la prórroga (incremento, no acumulado).
+    extraTime?: ApiScorePair | null;
     penalties?: ApiScorePair | null;
   } | null;
 }
 
-/** Marcador a los 90' (reglamentario): football-data lo da en `regularTime`
- *  cuando hubo prórroga/penales; si no, `fullTime` ya es el de los 90'. */
+/**
+ * Marcador a los 90' (reglamentario), el único que puntúa el 1X2.
+ *
+ * football-data NO es fiable con `regularTime`: en algunos partidos con prórroga
+ * lo deja en null y solo rellena `extraTime` (p.ej. BEL 3-2 SEN: fullTime 3-2,
+ * extraTime 1-0, regularTime null → los 90' fueron 2-2). Como `fullTime` es el
+ * TOTAL (incluye prórroga y penales), reconstruimos los 90' restando ambos:
+ *   90' = fullTime − extraTime − penales
+ * Esto funciona para todos los casos: grupos (extra/pen null → 90'=fullTime),
+ * prórroga y penales. Si `regularTime` viene con valores, coincide con el cálculo
+ * y lo usamos directamente por claridad.
+ */
 function regulationScore(score: ApiFixture["score"]): ApiScorePair | null {
   const reg = score?.regularTime;
   if (reg && reg.home != null && reg.away != null) return reg;
   const ft = score?.fullTime;
-  if (ft && ft.home != null && ft.away != null) return ft;
-  return null;
+  if (!ft || ft.home == null || ft.away == null) return null;
+  const et = score?.extraTime;
+  const pen = score?.penalties;
+  return {
+    home: ft.home - (et?.home ?? 0) - (pen?.home ?? 0),
+    away: ft.away - (et?.away ?? 0) - (pen?.away ?? 0),
+  };
 }
 
 /** Tanda de penales (o null si no la hubo). */
@@ -184,8 +203,17 @@ export async function syncResults(): Promise<SyncReport> {
         const winner = fx.score?.winner;
         const homeId = tlaToTeamId(fx.homeTeam?.tla) ?? m.home_team_id;
         const awayId = tlaToTeamId(fx.awayTeam?.tla) ?? m.away_team_id;
-        const winnerId =
-          winner === "HOME_TEAM" ? homeId : winner === "AWAY_TEAM" ? awayId : null;
+        // `winner_team_id` solo tiene sentido cuando se resolvió FUERA de los 90'
+        // (empate a 90'): ahí el marcador no dice quién pasó. Si ganó en el
+        // reglamentario, lo deduce el propio marcador y dejamos la columna null.
+        const decidedBeyond90 = reg!.home === reg!.away;
+        const winnerId = !decidedBeyond90
+          ? null
+          : winner === "HOME_TEAM"
+            ? homeId
+            : winner === "AWAY_TEAM"
+              ? awayId
+              : null;
 
         const scoreChanged =
           m.status !== "finished" || m.home_goals !== reg!.home || m.away_goals !== reg!.away;
