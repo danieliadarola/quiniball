@@ -2,7 +2,7 @@
  * Tests del motor de puntuación (modelo único). Ejecutar con: `npm run test`
  */
 import { describe, it, expect } from "vitest";
-import { ScoringError, type MatchPrediction } from "./types";
+import { ScoringError, POINTS, FINAL_MATCH_NUMBER, exactBonusFor, type MatchPrediction } from "./types";
 import { outcomeFromGoals } from "./outcome";
 import { scoreMatch } from "./match";
 
@@ -53,6 +53,29 @@ describe("scoreMatch — partido DE LA JORNADA (1X2 + exacto)", () => {
   });
   it("empate exacto acertado -> 8", () => {
     expect(scoreMatch(true, pred(1, 1), { homeGoals: 1, awayGoals: 1 })).toBe(8);
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe("exactBonusFor", () => {
+  it("la GRAN FINAL vale el doble (10); el resto, 5", () => {
+    expect(exactBonusFor(FINAL_MATCH_NUMBER)).toBe(POINTS.finalExactBonus);
+    expect(exactBonusFor(FINAL_MATCH_NUMBER)).toBe(10);
+    expect(exactBonusFor(1)).toBe(POINTS.exactBonus);
+    expect(exactBonusFor(103)).toBe(5); // 3.º puesto: bonus normal
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe("scoreMatch — GRAN FINAL (marcador exacto x2)", () => {
+  it("acierta 1X2 y marcador exacto con bonus 10 -> 3 + 10 = 13", () => {
+    expect(scoreMatch(true, pred(2, 1), { homeGoals: 2, awayGoals: 1 }, 10)).toBe(13);
+  });
+  it("acierta solo el 1X2 en la final (sin clavar marcador) -> 3", () => {
+    expect(scoreMatch(true, pred(3, 0), { homeGoals: 2, awayGoals: 1 }, 10)).toBe(3);
+  });
+  it("falla el 1X2 en la final -> 0", () => {
+    expect(scoreMatch(true, pred(0, 2), { homeGoals: 2, awayGoals: 1 }, 10)).toBe(0);
   });
 });
 

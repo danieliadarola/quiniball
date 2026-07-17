@@ -9,6 +9,7 @@ import { renameGroup } from "@/app/(app)/grupos/actions";
 import { ShareMenu } from "@/components/quiniela/ShareMenu";
 import { scoreMatch } from "@/lib/scoring/match";
 import { outcomeFromGoals } from "@/lib/scoring/outcome";
+import { exactBonusFor } from "@/lib/scoring/types";
 
 // Cada pestaña se carga SOLO al abrirse (lazy). Así la pantalla inicial
 // ("Partidos") no arrastra el JS del resto (el Ranking en vivo trae el cliente
@@ -42,6 +43,7 @@ import type { MatchPicks } from "@/lib/history/picks";
 import type { GroupStandings } from "@/lib/tournament/groupTable";
 import type { BracketRound } from "@/lib/tournament/bracket";
 import { JornadaAlert } from "@/components/quiniela/ClosingAlert";
+import { ChampionBanner, ChampionModal } from "@/components/quiniela/ChampionCelebration";
 
 type Tab = "partidos" | "ranking" | "historial" | "cuadro" | "gestionar";
 
@@ -135,6 +137,7 @@ export function QuinielaScreen({
         m.featured,
         { predHomeGoals: p.homeGoals, predAwayGoals: p.awayGoals, predOutcome: p.outcome },
         { homeGoals: m.result.home, awayGoals: m.result.away },
+        exactBonusFor(m.matchNumber),
       );
       const myOutcome =
         p.outcome ??
@@ -151,6 +154,10 @@ export function QuinielaScreen({
   const [groupName, setGroupName] = useState(name);
   const [editing, setEditing] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+
+  // Campeón(es) de la quiniela: solo existe cuando el Mundial ha terminado.
+  // Co-campeones si hubo empate a puntos (la vista `standings` marca is_champion).
+  const champions = useMemo(() => standings.filter((s) => s.isChampion), [standings]);
 
   return (
     <main className="mx-auto w-full max-w-2xl pb-28 safe-pb [--pad-b:2.5rem] lg:max-w-4xl lg:pb-10">
@@ -316,7 +323,8 @@ export function QuinielaScreen({
           </div>
         </div>
       ) : tab === "ranking" ? (
-        <div className="px-4 pt-4 safe-px [--pad-x:1rem]">
+        <div className="flex flex-col gap-4 px-4 pt-4 safe-px [--pad-x:1rem]">
+          <ChampionBanner champions={champions} currentProfileId={currentProfileId} />
           <RankingLive
             groupId={groupId}
             groupName={groupName}
@@ -375,6 +383,16 @@ export function QuinielaScreen({
           }}
         />
       )}
+
+      {/* Celebración de campeón (una vez por dispositivo, al terminar el Mundial). */}
+      <ChampionModal
+        groupId={groupId}
+        groupName={groupName}
+        champions={champions}
+        currentProfileId={currentProfileId}
+        myRank={myRank}
+        myPoints={myPoints}
+      />
 
       {/* Barra de navegación inferior (estilo Instagram): solo en móvil. */}
       <BottomNav tab={tab} onChange={setTab} />

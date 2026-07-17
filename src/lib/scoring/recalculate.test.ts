@@ -40,6 +40,19 @@ describe("recalcMatchPoints", () => {
     ]);
   });
 
+  it("GRAN FINAL: el marcador exacto suma el bonus reforzado (3 + 10 = 13)", () => {
+    const preds = [
+      p("a", 2, 1), // exacto en la final -> 13
+      p("b", 3, 0), // acierta 1X2 sin marcador -> 3
+      p("c", 0, 1), // falla -> 0
+    ];
+    expect(recalcMatchPoints(true, result, preds, 10)).toEqual([
+      { id: "a", points: 13 },
+      { id: "b", points: 3 },
+      { id: "c", points: 0 },
+    ]);
+  });
+
   it("lista vacía -> sin actualizaciones", () => {
     expect(recalcMatchPoints(false, result, [])).toEqual([]);
   });

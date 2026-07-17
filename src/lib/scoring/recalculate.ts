@@ -11,7 +11,7 @@
  * (con service_role, ya que `points_awarded` lo escribe el sistema, no el
  * jugador). Así es 100% testeable y reutilizable.
  */
-import { type MatchResult, type Outcome } from "./types";
+import { type MatchResult, type Outcome, POINTS } from "./types";
 import { scoreMatch } from "./match";
 
 /** Predicción de partido lista para puntuar (forma neutral de BD). */
@@ -41,11 +41,14 @@ export interface PointsUpdate {
  *                    anularlo con su propio `featured` (destacado por quiniela).
  * @param result      Resultado oficial del partido.
  * @param predictions Predicciones de ese partido (de cualquier quiniela).
+ * @param exactBonus  Puntos del marcador exacto en este partido (por defecto 5;
+ *                    la GRAN FINAL pasa 10 — ver `exactBonusFor`).
  */
 export function recalcMatchPoints(
   isFeatured: boolean,
   result: MatchResult,
   predictions: ScorablePrediction[],
+  exactBonus: number = POINTS.exactBonus,
 ): PointsUpdate[] {
   return predictions.map((p) => ({
     id: p.id,
@@ -57,6 +60,7 @@ export function recalcMatchPoints(
         predOutcome: p.predOutcome,
       },
       result,
+      exactBonus,
     ),
   }));
 }

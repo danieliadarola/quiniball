@@ -6,7 +6,7 @@ import {
   type PredictionState,
 } from "@/app/(app)/grupo/[id]/calendario/actions";
 import { Flag } from "@/components/ui/Flag";
-import { POINTS, type Outcome } from "@/lib/scoring/types";
+import { POINTS, exactBonusFor, FINAL_MATCH_NUMBER, type Outcome } from "@/lib/scoring/types";
 
 export interface MatchVM {
   matchNumber: number;
@@ -42,6 +42,11 @@ export function MatchCard({
   const predictable = match.home !== null && match.away !== null;
   const finished = match.result !== null;
   const editable = predictable && !match.locked && !finished;
+
+  // La GRAN FINAL es la estrella común de todas las quinielas y su marcador
+  // exacto vale el doble (10 → 13 en total). Se resalta de forma especial.
+  const isFinal = match.matchNumber === FINAL_MATCH_NUMBER;
+  const exactBonus = exactBonusFor(match.matchNumber);
 
   const [pick, setPick] = useState<Outcome | null>(prediction?.outcome ?? null);
   const [exact, setExact] = useState<[number, number] | null>(
@@ -95,7 +100,7 @@ export function MatchCard({
       exact !== null &&
       exact[0] === match.result.home &&
       exact[1] === match.result.away;
-    earned = (okOutcome ? POINTS.outcome : 0) + (okExact ? POINTS.exactBonus : 0);
+    earned = (okOutcome ? POINTS.outcome : 0) + (okExact ? exactBonus : 0);
   }
 
   return (
@@ -107,11 +112,26 @@ export function MatchCard({
       } ${finished ? "opacity-95" : ""}`}
     >
       {match.featured && (
-        <div className="-mt-0.5 mb-3 flex items-center gap-1.5 rounded-lg bg-accent px-2.5 py-1.5 text-[11.5px] font-extrabold uppercase tracking-[0.3px] text-[#0a2a00]">
+        <div
+          className={`-mt-0.5 mb-3 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11.5px] font-extrabold uppercase tracking-[0.3px] ${
+            isFinal
+              ? "bg-gradient-to-r from-[#f7cf52] to-[#e0a020] text-[#5a3d00] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]"
+              : "bg-accent text-[#0a2a00]"
+          }`}
+        >
           <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden>
             <path d="M12 2l2.9 6.3 6.8.6-5.1 4.5 1.5 6.6L12 17.3 5.9 20.6l1.5-6.6L2.3 8.9l6.8-.6z" />
           </svg>
-          Partido estrella · marcador exacto <b className="ml-0.5">+{POINTS.exactBonus} pts</b>
+          {isFinal ? (
+            <>
+              Gran Final · marcador exacto <b className="ml-0.5">+{exactBonus} pts</b>
+              <span className="ml-1 rounded bg-black/15 px-1.5 py-px text-[10px]">Hasta 13 pts</span>
+            </>
+          ) : (
+            <>
+              Partido estrella · marcador exacto <b className="ml-0.5">+{exactBonus} pts</b>
+            </>
+          )}
         </div>
       )}
 
@@ -165,7 +185,7 @@ export function MatchCard({
             <span className="font-extrabold">
               Marcador exacto <em className="font-medium not-italic text-muted">(opcional)</em>
             </span>
-            <span className="font-extrabold text-accent">+{POINTS.exactBonus} pts si aciertas</span>
+            <span className="font-extrabold text-accent">+{exactBonus} pts si aciertas</span>
           </div>
           <div className="flex items-center justify-center gap-[18px]">
             <div className="flex items-center gap-2.5">

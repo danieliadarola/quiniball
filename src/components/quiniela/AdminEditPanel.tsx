@@ -13,7 +13,7 @@
  * forma autoritativa (ver admin-actions.ts).
  */
 import { useMemo, useState, useTransition } from "react";
-import { POINTS, type Outcome } from "@/lib/scoring/types";
+import { POINTS, exactBonusFor, type Outcome } from "@/lib/scoring/types";
 import type { StandingRow } from "@/lib/standings/fetch";
 import type { JornadaVM } from "@/components/quiniela/QuinielaScreen";
 import type { MatchVM } from "@/components/predictions/MatchCard";
@@ -71,6 +71,8 @@ export function AdminEditPanel({
 
   const chosenMatch = matches.find((m) => m.matchNumber === matchNumber) ?? null;
   const ready = profileId && chosenMatch && target;
+  // La GRAN FINAL puntúa el marcador exacto reforzado (10 en vez de 5).
+  const exactBonus = chosenMatch ? exactBonusFor(chosenMatch.matchNumber) : POINTS.exactBonus;
 
   // Carga el contexto cuando hay jugador + partido seleccionados.
   function loadContext(pid: string, mn: number | "") {
@@ -111,7 +113,7 @@ export function AdminEditPanel({
         exact !== null &&
         exact[0] === target.result.home &&
         exact[1] === target.result.away;
-      newPts = (okOutcome ? POINTS.outcome : 0) + (okExact ? POINTS.exactBonus : 0);
+      newPts = (okOutcome ? POINTS.outcome : 0) + (okExact ? exactBonus : 0);
     }
     const delta = newPts - oldPts;
 
@@ -311,7 +313,7 @@ export function AdminEditPanel({
                       <span className="font-extrabold text-fg">
                         Marcador exacto <em className="font-medium not-italic text-muted">(opcional)</em>
                       </span>
-                      <span className="font-extrabold text-accent">+{POINTS.exactBonus} pts</span>
+                      <span className="font-extrabold text-accent">+{exactBonus} pts</span>
                     </div>
                     <div className="flex items-center justify-center gap-4">
                       <Stepper

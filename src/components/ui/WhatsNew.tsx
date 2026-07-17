@@ -12,8 +12,18 @@ const STORAGE_KEY = "qb_whatsnew";
 
 const WHATS_NEW = {
   // Cambia esta clave cuando haya novedades que anunciar (sale una vez por móvil).
-  version: "v1.2.1",
+  version: "v1.3.0",
   items: [
+    {
+      icon: "🥇",
+      title: "La Gran Final vale 13 puntos",
+      text: "El partido estrella de todas las quinielas es la final. Si clavas el marcador exacto sumas 10 puntos (más los 3 del 1X2): hasta 13 en un solo partido. Revisa tu marcador de la final antes del saque.",
+    },
+    {
+      icon: "👑",
+      title: "Campeón de la quiniela",
+      text: "Cuando termine el Mundial, el ganador de cada quiniela recibe su corona en el ranking, un banner de campeón y una celebración al entrar. Si hay empate a puntos, habrá co-campeones.",
+    },
     {
       icon: "⚖️",
       title: "Eliminatorias: puntúa el tiempo reglamentario",

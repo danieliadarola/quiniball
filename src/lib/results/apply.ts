@@ -17,7 +17,7 @@ import "server-only";
  */
 import { createSupabaseAdmin } from "@/lib/supabase/server";
 import { recalcMatchPoints, type ScorablePrediction } from "@/lib/scoring";
-import type { MatchResult, Outcome } from "@/lib/scoring/types";
+import { exactBonusFor, FINAL_MATCH_NUMBER, type MatchResult, type Outcome } from "@/lib/scoring/types";
 
 export interface ApplyResultOutcome {
   ok: boolean;
@@ -66,16 +66,20 @@ export async function applyMatchResult(
 
   // 3) Puntos con el motor puro (ya testeado). El bonus por marcador exacto solo
   //    aplica a las predicciones cuya quiniela tiene este partido como estrella.
+  //    La GRAN FINAL (#104) es estrella de TODAS las quinielas y su marcador
+  //    exacto vale el doble (10 en vez de 5).
+  const isFinal = matchNumber === FINAL_MATCH_NUMBER;
   const result: MatchResult = { homeGoals, awayGoals };
   const scorable: ScorablePrediction[] = predictions.map((p) => ({
     id: p.id,
     predHomeGoals: p.pred_home_goals,
     predAwayGoals: p.pred_away_goals,
     predOutcome: p.pred_outcome,
-    featured: featuredGroups.has(p.group_id),
+    // La final es estrella para todos aunque a un grupo le faltara la fila.
+    featured: isFinal || featuredGroups.has(p.group_id),
   }));
 
-  const updates = recalcMatchPoints(false, result, scorable);
+  const updates = recalcMatchPoints(false, result, scorable, exactBonusFor(matchNumber));
 
   // 4) Aplicación atómica (marcador + puntos) en una transacción.
   const { error: rErr } = await admin.rpc("apply_match_result", {

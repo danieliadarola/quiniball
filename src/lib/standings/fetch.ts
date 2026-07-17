@@ -16,6 +16,8 @@ export interface StandingRow {
   rank: number;
   avatarStyle: string | null;
   avatarSeed: string | null;
+  /** Campeón de la quiniela (solo tras terminar el Mundial). Co-campeones si empate. */
+  isChampion: boolean;
 }
 
 interface StandingDbRow {
@@ -27,6 +29,7 @@ interface StandingDbRow {
   rank: number;
   avatar_style: string | null;
   avatar_seed: string | null;
+  is_champion: boolean | null;
 }
 
 /** Devuelve la clasificación de una quiniela, ordenada por posición. */
@@ -36,7 +39,9 @@ export async function fetchStandings(
 ): Promise<StandingRow[]> {
   const { data, error } = await sb
     .from("standings")
-    .select("profile_id, display_name, total_points, exact_hits, outcome_hits, rank, avatar_style, avatar_seed")
+    .select(
+      "profile_id, display_name, total_points, exact_hits, outcome_hits, rank, avatar_style, avatar_seed, is_champion",
+    )
     .eq("group_id", groupId)
     .order("rank", { ascending: true });
 
@@ -51,5 +56,6 @@ export async function fetchStandings(
     rank: r.rank,
     avatarStyle: r.avatar_style,
     avatarSeed: r.avatar_seed,
+    isChampion: r.is_champion ?? false,
   }));
 }

@@ -71,14 +71,25 @@ export function RankingBoard({
             const isYou = row.profileId === currentProfileId;
             return (
               <div key={place} className="flex flex-1 flex-col items-center justify-end gap-2">
-                <Avatar
-                  id={row.profileId}
-                  name={row.displayName}
-                  size={place === 1 ? 70 : 56}
-                  ringClass={`ring-2 ${meta.ring} ring-offset-2 ring-offset-surface`}
-                  avatarStyle={row.avatarStyle}
-                  avatarSeed={row.avatarSeed}
-                />
+                <div className="relative">
+                  {row.isChampion && (
+                    <span
+                      className="absolute -top-3.5 left-1/2 z-[1] -translate-x-1/2 text-[#f5c542] drop-shadow"
+                      aria-label="Campeón"
+                      title="Campeón del Mundial"
+                    >
+                      <CrownGlyph />
+                    </span>
+                  )}
+                  <Avatar
+                    id={row.profileId}
+                    name={row.displayName}
+                    size={place === 1 ? 70 : 56}
+                    ringClass={`ring-2 ${meta.ring} ring-offset-2 ring-offset-surface`}
+                    avatarStyle={row.avatarStyle}
+                    avatarSeed={row.avatarSeed}
+                  />
+                </div>
                 <div className="w-full px-0.5 text-center">
                   <span className="block truncate text-[12.5px] font-bold leading-tight">
                     {row.displayName}
@@ -149,7 +160,11 @@ export function RankingBoard({
                     key={row.profileId}
                     ref={isYou ? meRef : undefined}
                     className={`flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition ${
-                      isYou ? "border-accent bg-accent/10" : "border-line bg-surface2"
+                      row.isChampion
+                        ? "border-[#f5c542]/70 bg-[#f5c542]/10"
+                        : isYou
+                          ? "border-accent bg-accent/10"
+                          : "border-line bg-surface2"
                     }`}
                   >
                     <span
@@ -167,11 +182,17 @@ export function RankingBoard({
                       avatarSeed={row.avatarSeed}
                     />
                     <div className="min-w-0 flex-1">
-                      <span className="block truncate text-[14.5px] font-bold">
-                        {row.displayName}
-                        {isYou && <span className="ml-2 text-xs font-extrabold text-accent">Tú</span>}
+                      <span className="flex items-center gap-1.5 truncate text-[14.5px] font-bold">
+                        {row.isChampion && (
+                          <span className="shrink-0 text-[#f5c542]" title="Campeón del Mundial" aria-label="Campeón">
+                            <CrownGlyph size={15} />
+                          </span>
+                        )}
+                        <span className="truncate">{row.displayName}</span>
+                        {isYou && <span className="shrink-0 text-xs font-extrabold text-accent">Tú</span>}
                       </span>
                       <span className="text-[11px] font-semibold text-muted">
+                        {row.isChampion && <b className="text-[#e0a020]">Campeón · </b>}
                         {row.exactHits} exactos · {row.outcomeHits} aciertos
                       </span>
                     </div>
@@ -187,5 +208,15 @@ export function RankingBoard({
         </div>
       </section>
     </div>
+  );
+}
+
+/** Corona maciza (hereda el color del texto). Marca al campeón del Mundial. */
+function CrownGlyph({ size = 20 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden>
+      <path d="M3 8.5l3.4 3L12 5l5.6 6.5 3.4-3-1.6 9.2H4.6z" />
+      <path d="M4.4 20.2h15.2v1.3a.5.5 0 0 1-.5.5H4.9a.5.5 0 0 1-.5-.5z" />
+    </svg>
   );
 }

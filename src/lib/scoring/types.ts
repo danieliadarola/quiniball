@@ -22,7 +22,27 @@ export const POINTS = {
   outcome: 3,
   /** Extra por marcador exacto. Solo el "partido de la jornada". */
   exactBonus: 5,
+  /**
+   * Extra por marcador exacto en la GRAN FINAL (partido estrella de todas las
+   * quinielas). Vale el doble: acertar el resultado exacto de la final suma 10
+   * (más los 3 del 1X2 = 13 en total).
+   */
+  finalExactBonus: 10,
 } as const;
+
+/**
+ * Número de partido de la GRAN FINAL (numeración FIFA). Es la estrella común de
+ * todas las quinielas del Mundial y su marcador exacto puntúa reforzado.
+ */
+export const FINAL_MATCH_NUMBER = 104;
+
+/**
+ * Bonus por marcador exacto que corresponde a un partido: la final vale el
+ * doble (`finalExactBonus`); el resto, el bonus normal (`exactBonus`).
+ */
+export function exactBonusFor(matchNumber: number): number {
+  return matchNumber === FINAL_MATCH_NUMBER ? POINTS.finalExactBonus : POINTS.exactBonus;
+}
 
 // --- Entradas del motor ----------------------------------------------------
 

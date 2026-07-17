@@ -36,6 +36,11 @@ export function CreateGroupForm() {
             (aleatorio y propio de cada quiniela) que además puntúa el marcador exacto:{" "}
             <span className="font-semibold text-accent">+{POINTS.exactBonus} pts</span>.
           </li>
+          <li>
+            · La <span className="text-slate-200">🏆 Gran Final</span> es la estrella de todas las
+            quinielas y su marcador exacto vale el doble:{" "}
+            <span className="font-semibold text-accent">+{POINTS.finalExactBonus} pts</span> (hasta 13).
+          </li>
         </ul>
       </section>
 
